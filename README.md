@@ -26,3 +26,8 @@ The files served at the website root are the complete site. Edit them, then comm
 NASA imagery credits appear on the site. No affiliation with or endorsement by NASA or any other space agency is claimed. The outpost is a future concept; there are no inhabited outposts on the Moon or Mars today.
 
 The 3D orbital Moon uses NASA Scientific Visualization Studio's CGI Moon Kit textures: the LROC wide-angle camera global colour mosaic and LOLA elevation data. Source: https://svs.gsfc.nasa.gov/4720/
+
+## Install as an app
+
+Open the public site on an Android phone or desktop browser and choose **Install app** (or use your browser menu). On iPhone/iPad, open in Safari, tap **Share**, then **Add to Home Screen**. The site caches the learning pages and 3D expedition after the first visit for offline use. Mission sources link out and require an internet connection.
+
