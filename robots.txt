@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://manusssssss.github.io/Outpost-Explorers/sitemap.xml
