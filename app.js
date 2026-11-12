@@ -1,4 +1,5 @@
 import {missions,checked,sources} from './missions.js';
+import {mountMissionDemo} from './mission-demo.js';
 const $=s=>document.querySelector(s);
 const $$=s=>[...document.querySelectorAll(s)];
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -43,7 +44,7 @@ function filterMissions(){
  return missions.filter(m=>(filterWorld==='All'||m.world===filterWorld)&&(status==='All'||m.status===status)&&(agency==='All'||m.agency===agency)&&[m.name,m.agency,m.summary,m.fact,m.type,String(m.year??'')].join(' ').toLowerCase().includes(q)).sort((a,b)=>$('#sort-filter').value==='name'?a.name.localeCompare(b.name):$('#sort-filter').value==='old'?(a.year??9999)-(b.year??9999):(b.year??9999)-(a.year??9999));
 }
 function card(m){
- return '<article class="mission-card"><div class="card-visual '+m.world.toLowerCase()+'"><img src="assets/'+m.world.toLowerCase()+'.jpg" alt="" loading="lazy"><span class="year">'+(m.year??'AHEAD')+'</span><button class="bookmark '+(saved.has(m.id)?'saved':'')+'" data-save="'+m.id+'" aria-pressed="'+saved.has(m.id)+'" aria-label="'+(saved.has(m.id)?'Unsave':'Save')+' '+escape(m.name)+'">'+(saved.has(m.id)?'◆':'◇')+'</button></div><div class="card-body"><div class="mission-meta"><span>'+m.world+' · '+escape(m.type)+'</span><span class="status '+m.status+'">'+m.status+'</span></div><h3>'+escape(m.name)+'</h3><p class="agency">'+escape(m.agency)+'</p><p class="card-description">'+escape(m.summary)+'</p><button class="mission-open" data-open="'+m.id+'">Discover this mission <span>↗</span></button></div></article>';
+ return '<article class="mission-card"><div class="card-visual '+m.world.toLowerCase()+'"><img src="assets/'+m.world.toLowerCase()+'.jpg" alt="" loading="lazy"><span class="year">'+(m.year??'AHEAD')+'</span><button class="bookmark '+(saved.has(m.id)?'saved':'')+'" data-save="'+m.id+'" aria-pressed="'+saved.has(m.id)+'" aria-label="'+(saved.has(m.id)?'Unsave':'Save')+' '+escape(m.name)+'">'+(saved.has(m.id)?'◆':'◇')+'</button></div><div class="card-body"><div class="mission-meta"><span>'+m.world+' · '+escape(m.type)+'</span><span class="status '+m.status+'">'+m.status+'</span></div><h3>'+escape(m.name)+'</h3><p class="agency">'+escape(m.agency)+'</p><p class="card-description">'+escape(m.summary)+'</p><button class="mission-open" data-open="'+m.id+'">Review mission <span>↗</span></button></div></article>';
 }
 function bindCards(scope){scope.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>openMission(b.dataset.open)));scope.querySelectorAll('[data-save]').forEach(b=>b.addEventListener('click',()=>toggleSave(b.dataset.save)));}
 function renderMissions(){
@@ -57,13 +58,29 @@ $$('[data-filter-world]').forEach(b=>b.addEventListener('click',()=>{filterWorld
 ['mission-search','status-filter','agency-filter','sort-filter'].forEach(id=>$('#'+id).addEventListener(id==='mission-search'?'input':'change',()=>{limit=9;renderMissions();}));
 $('#load-more').addEventListener('click',()=>{limit+=9;renderMissions();});
 const dialog=$('#mission-dialog');
+let stopMissionDemo=null;
 $('.dialog-close').addEventListener('click',()=>dialog.close());
+dialog.addEventListener('close',()=>{stopMissionDemo?.();stopMissionDemo=null;});
 dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close();}});
 function openMission(id){
  const m=missions.find(x=>x.id===id);if(!m)return;
- $('#dialog-content').innerHTML='<p class="dialog-world">'+m.world.toUpperCase()+' EXPLORATION</p><h2>'+escape(m.name)+'</h2><p>'+escape(m.agency)+'</p><div class="detail-facts"><div><small>'+(m.status==='Planned'?'TARGET / TIMING':'FIRST LAUNCH YEAR')+'</small>'+(m.year??'To be confirmed')+'</div><div><small>CHAPTER</small>'+m.status+'</div><div><small>EXPLORER TYPE</small>'+escape(m.type)+'</div></div><p>'+escape(m.summary)+'</p><div class="think-box"><b>A discovery to remember</b><p>'+escape(m.fact)+'</p></div><div class="dialog-actions"><a class="button primary" href="'+m.source+'" target="_blank" rel="noopener">Read the agency source ↗</a><button class="button secondary" data-dialog-save="'+m.id+'">'+(saved.has(id)?'Saved ◆':'Save to notebook ◇')+'</button></div><p class="detail-note">Reviewed '+checked+'. Programme entries group several spacecraft and use their first launch year. “Past” records historic work, not a judgement that every objective succeeded. Planned dates are targets. This is a reviewed guide, not live spacecraft telemetry.</p>';
+ dialog.classList.remove('mission-dialog-expanded');
+ stopMissionDemo?.();stopMissionDemo=null;
+ $('#dialog-content').innerHTML='<p class="dialog-world">'+m.world.toUpperCase()+' EXPLORATION</p><h2>'+escape(m.name)+'</h2><p>'+escape(m.agency)+'</p><div class="detail-facts"><div><small>'+(m.status==='Planned'?'TARGET / TIMING':'FIRST LAUNCH YEAR')+'</small>'+(m.year??'To be confirmed')+'</div><div><small>CHAPTER</small>'+m.status+'</div><div><small>EXPLORER TYPE</small>'+escape(m.type)+'</div></div><section class="mission-study-summary"><p class="mission-study-kicker">'+(m.status==='Planned'?'WHAT THE MISSION PLANS TO DO':m.status==='Unsuccessful'?'WHAT THE MISSION ATTEMPTED':'MISSION SUMMARY')+'</p><p>'+escape(m.summary)+'</p></section><div class="think-box"><b>A discovery to remember</b><p>'+escape(m.fact)+'</p></div><div class="mission-demo-invite"><div><b>See the mission in 3D</b><p>'+(m.status==='Planned'?'Illustrative preview of the planned mission goals.':'Explore a simple 3D mission sequence.')+'</p></div><button class="button primary" data-open-mission-demo="'+m.id+'">Open 3D mission view <span>↗</span></button></div><div class="dialog-actions"><a class="button secondary" href="'+m.source+'" target="_blank" rel="noopener">Read the agency source ↗</a><button class="button secondary" data-dialog-save="'+m.id+'">'+(saved.has(id)?'Saved ◆':'Save to notebook ◇')+'</button></div><p class="detail-note">Reviewed '+checked+'. Programme entries group several spacecraft and use their first launch year. “Past” records historic work, not a judgement that every objective succeeded. Planned dates are targets. This is a reviewed guide, not live spacecraft telemetry.</p>';
+ $('[data-open-mission-demo]').addEventListener('click',()=>openMissionDemo(id));
  $('[data-dialog-save]').addEventListener('click',()=>{toggleSave(id);$('[data-dialog-save]').textContent=saved.has(id)?'Saved ◆':'Save to notebook ◇';});
  if(!dialog.open)dialog.showModal();
+}
+function openMissionDemo(id){
+ const m=missions.find(x=>x.id===id);if(!m)return;
+ dialog.classList.add('mission-dialog-expanded');
+ stopMissionDemo?.();stopMissionDemo=null;
+ $('#dialog-content').innerHTML='<button class="mission-demo-back" data-back-to-summary="'+m.id+'">← Back to mission summary</button><p class="dialog-world">'+escape(m.world.toUpperCase())+' · '+(m.status==='Planned'?'PLANNED GOALS · CONCEPT':'MISSION STUDY')+'</p><h2>'+escape(m.name)+'</h2><p class="mission-demo-disclaimer">'+(m.status==='Planned'?'Illustrative concept based on announced goals. This is not a final design or a live mission.':'Illustrative 3D study based on the mission summary. This is not live spacecraft telemetry.')+'</p><div class="mission-demo" data-mission-demo></div><div class="mission-demo-caption"><span class="mission-demo-step-label"></span><p class="mission-demo-step-copy"></p></div><div class="mission-demo-controls"><button class="button secondary" data-demo-prev>← Previous step</button><span class="mission-demo-progress" aria-live="polite"></span><button class="button primary" data-demo-next>Next step →</button></div><div class="mission-demo-summary"><b>Mission summary</b><p>'+escape(m.summary)+'</p><a href="'+m.source+'" target="_blank" rel="noopener">Read the agency source ↗</a></div><p class="detail-note">Reviewed '+checked+'. The 3D scene is an educational illustration, not an exact engineering model.</p>';
+ $('[data-back-to-summary]').addEventListener('click',()=>openMission(id));
+ stopMissionDemo=mountMissionDemo($('[data-mission-demo]'),m,{
+  label:$('.mission-demo-step-label'),copy:$('.mission-demo-step-copy'),progress:$('.mission-demo-progress'),
+  previous:$('[data-demo-prev]'),next:$('[data-demo-next]')
+ });
 }
 $('#about-data').addEventListener('click',()=>{
  $('#dialog-content').innerHTML='<p class="dialog-world">HOW WE LEARN</p><h2>Follow the evidence.</h2><p>Our atlas covers '+missions.length+' major mission and programme entries. It is not an exhaustive launch register. Entries include NASA, Soviet missions, Roscosmos, ISRO, CNSA, ESA, JAXA, Korean and UAE teams, international partners and commercial lunar missions.</p><p><strong>Past</strong> means historic work. <strong>Exploring</strong> is used where the reviewed source describes ongoing work. <strong>Travelling</strong> means a launched journey is underway. <strong>Launched</strong> records that a mission flew; its current health has not been independently confirmed here. <strong>Planned</strong> means a future goal. <strong>Unsuccessful</strong> records an attempt that did not achieve its central goal.</p><p>Some programmes group spacecraft. For individual launches and fuller histories, use the official archives. Launch years and future targets are labelled separately in each entry.</p><p>Reviewed '+checked+'. This is a static educational snapshot. It does not update itself.</p><div class="source-links"><a href="'+sources.moon+'" target="_blank" rel="noopener">Full Moon archive ↗</a><a href="'+sources.mars+'" target="_blank" rel="noopener">Mars history ↗</a></div>';
@@ -97,3 +114,4 @@ function renderQuiz(){
  $('.quiz-next').addEventListener('click',()=>{qi++;renderQuiz();});
 }
 renderStation();renderMissions();renderSaved();renderQuiz();
+
