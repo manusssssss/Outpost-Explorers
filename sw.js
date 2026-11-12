@@ -1,4 +1,4 @@
-const CACHE = 'outpost-explorers-v1';
+const CACHE = 'outpost-explorers-v2';
 const BASE = new URL('./', self.location.href);
 const SHELL = [
   'index.html','style.css','app.js','missions.js','explore.html','explore.css',
