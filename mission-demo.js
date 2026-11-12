@@ -116,25 +116,26 @@ export function mountMissionDemo(container,mission,ui){
  const type=mission.type.toLowerCase(),isOrbital=/orbiter|flyby|orbit/.test(type),isReturn=/sample return/.test(type);
  container.innerHTML='<canvas class="mission-demo-canvas" aria-label="Interactive three-dimensional illustration of '+mission.name.replace(/[&<>"']/g,'')+'"></canvas><div class="mission-demo-hint">DRAG TO ROTATE · SCROLL TO ZOOM</div>';
  const canvas=container.querySelector('canvas'),renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'low-power'});
- renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.setSize(container.clientWidth,container.clientHeight,false);renderer.outputColorSpace=THREE.SRGBColorSpace;
+ renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.setSize(container.clientWidth,container.clientHeight,false);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
  const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x111f24,.025);
  const camera=new THREE.PerspectiveCamera(37,container.clientWidth/container.clientHeight,.1,100);camera.position.set(4,3.3,8);
  scene.add(new THREE.HemisphereLight(0xc7d9d8,0x493a31,1.65));
- const key=new THREE.DirectionalLight(0xffe7c4,3.1);key.position.set(-4,6,5);scene.add(key);
+ const key=new THREE.DirectionalLight(0xffe7c4,3.1);key.position.set(-4,6,5);key.castShadow=true;key.shadow.mapSize.set(512,512);key.shadow.camera.near=.1;key.shadow.camera.far=30;key.shadow.camera.left=-10;key.shadow.camera.right=10;key.shadow.camera.top=10;key.shadow.camera.bottom=-10;scene.add(key);
  const rim=new THREE.DirectionalLight(0x6ca2b2,2.1);rim.position.set(5,2,-5);scene.add(rim);addStars(scene);
  const worldColor=mission.world==='Mars'?0xa44d32:0x969b96;
  const planetGroup=new THREE.Group();scene.add(planetGroup);
  const planetMaterial=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.98,metalness:0});
  const planet=new THREE.Mesh(new THREE.SphereGeometry(1.78,48,32),planetMaterial);planetGroup.add(planet);
  let planetTexture=null;new THREE.TextureLoader().load('./assets/'+mission.world.toLowerCase()+'.jpg',texture=>{if(disposed){texture.dispose();return;}planetTexture=texture;texture.colorSpace=THREE.SRGBColorSpace;planetMaterial.map=texture;planetMaterial.needsUpdate=true;});
- const surface=new THREE.Mesh(new THREE.PlaneGeometry(22,22),new THREE.MeshStandardMaterial({color:worldColor,roughness:1,metalness:0}));surface.rotation.x=-Math.PI/2;surface.position.y=-1.45;scene.add(surface);
+ const surface=new THREE.Mesh(new THREE.PlaneGeometry(24,16),new THREE.MeshStandardMaterial({color:worldColor,roughness:1,metalness:0}));surface.rotation.x=-Math.PI/2;surface.position.y=-1.45;surface.receiveShadow=true;scene.add(surface);
  const randomSeed=(mission.name.length*971+mission.year||193)*53;
  let seed=randomSeed>>>0;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
  const rockMat=new THREE.MeshStandardMaterial({color:mission.world==='Mars'?0x80503e:0x727a76,roughness:1});
  for(let i=0;i<26;i++){
-  const size=.07+rand()*.24,rock=new THREE.Mesh(new THREE.DodecahedronGeometry(size,0),rockMat);
+  const size=.07+rand()*.24,rock=new THREE.Mesh(new THREE.DodecahedronGeometry(size,0),rockMat);rock.castShadow=true;rock.receiveShadow=true;
   rock.position.set((rand()-.5)*10,-1.36+size*.45,(rand()-.5)*6-1.3);rock.rotation.set(rand()*2,rand()*2,rand()*2);scene.add(rock);
  }
+ for(let i=0;i<7;i++){const ridge=new THREE.Mesh(new THREE.DodecahedronGeometry(.9+rand()*.5,0),rockMat);ridge.scale.set(1.25,.65,.75);ridge.position.set(-7+i*2.3,-1.23,-6.15);ridge.rotation.y=rand()*2;ridge.castShadow=true;ridge.receiveShadow=true;scene.add(ridge);}
  const target=new THREE.Group();target.position.set(2.3,-1.38,-.1);scene.add(target);
  const beacon=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.48,8),new THREE.MeshStandardMaterial({color:0xc7dc9b,emissive:0x466b37,emissiveIntensity:1.1}));beacon.position.y=.24;target.add(beacon);
  const halo=new THREE.Mesh(new THREE.TorusGeometry(.36,.028,8,32),new THREE.MeshBasicMaterial({color:0xdde9a5}));halo.rotation.x=Math.PI/2;halo.position.y=.03;target.add(halo);
@@ -146,6 +147,7 @@ export function mountMissionDemo(container,mission,ui){
  const panelMat=new THREE.MeshStandardMaterial({color:0x37728b,metalness:.5,roughness:.35});
  for(const side of [-1,1]){const panel=new THREE.Mesh(new THREE.BoxGeometry(.72,.045,.4),panelMat);panel.position.x=side*.59;satellite.add(panel);}
  const ant=new THREE.Mesh(new THREE.ConeGeometry(.17,.26,16),new THREE.MeshStandardMaterial({color:0xf0c477,metalness:.25,roughness:.3}));ant.rotation.z=Math.PI;ant.position.y=-.27;satellite.add(ant);planetGroup.add(satellite);
+ const approachCraft=satellite.clone(true);scene.add(approachCraft);
  const sample=new THREE.Mesh(new THREE.OctahedronGeometry(.2,0),new THREE.MeshStandardMaterial({color:0xd4c396,metalness:.12,roughness:.72}));sample.position.set(1.95,-1.23,.18);scene.add(sample);
  const returnCapsule=new THREE.Group();
  const capsuleBody=new THREE.Mesh(new THREE.ConeGeometry(.24,.62,8),new THREE.MeshStandardMaterial({color:0xdadbd0,metalness:.25,roughness:.4}));capsuleBody.rotation.z=Math.PI;returnCapsule.add(capsuleBody);
@@ -160,13 +162,14 @@ export function mountMissionDemo(container,mission,ui){
  canvas.addEventListener('pointerdown',onDown);canvas.addEventListener('pointermove',onMove);canvas.addEventListener('pointerup',onUp);canvas.addEventListener('pointercancel',onUp);canvas.addEventListener('wheel',onWheel,{passive:false});
  const observer=new ResizeObserver(resize);observer.observe(container);
 
- const touchdownStep=Math.max(1,steps.findIndex(s=>/land|surface|deploy/i.test(s[0])));
+ const touchdownStep=Math.max(1,steps.findIndex(s=>/soft landing|land and explore|land and deploy|reach the target/i.test(s[0])));
+ const landerVisibleFrom=Math.max(1,touchdownStep-1);
  let landerTargetY=-1.43;
  function showStep(){
   const s=steps[step];ui.label.textContent=s[0];ui.copy.textContent=s[1];ui.progress.textContent='STEP '+(step+1)+' OF '+steps.length;
   ui.previous.disabled=step===0;ui.next.textContent=step===steps.length-1?'Replay mission ↻':'Next step →';
   landerTargetY=step<touchdownStep?0.8:-1.43;
-  lander.visible=!isOrbital;rover.group.visible=!isOrbital&&step>=touchdownStep&&(/rover/.test(type)||steps.some(x=>/rover/i.test(x[0])));
+  approachCraft.visible=!isOrbital&&step<landerVisibleFrom;lander.visible=!isOrbital&&step>=landerVisibleFrom;rover.group.visible=!isOrbital&&step>=touchdownStep&&(/rover/.test(type)||steps.some(x=>/rover/i.test(x[0])));
   sample.visible=/sample/.test(type)&&step>=steps.length-2;
   returnCapsule.visible=isReturn&&step===steps.length-1;
   satellite.visible=isOrbital||step===steps.length-1;
@@ -182,13 +185,14 @@ export function mountMissionDemo(container,mission,ui){
   satellite.position.set(Math.cos(t*.34)*2.12,Math.sin(t*.34)*.78,Math.sin(t*.34)*1.35);
   satellite.rotation.y=-t*.34;
   if(!isOrbital){
-   const travel=step/(steps.length-1);rover.group.position.x=-2.1+travel*3.1;rover.group.rotation.y=.12+travel*.18;
+  const travel=step/(steps.length-1);rover.group.position.x=-2.1+travel*3.1;rover.group.rotation.y=.12+travel*.18;
    rover.wheels.forEach(w=>w.rotation.z=-travel*2.2);
    target.rotation.y=t*.25;halo.material.opacity=.55+Math.sin(t*2.4)*.25;
    lander.position.y=THREE.MathUtils.damp(lander.position.y,landerTargetY,.8,1/60);lander.rotation.y=Math.sin(t*.4)*.04;
+   if(approachCraft.visible){approachCraft.position.set(-2.1+Math.sin(t*.6)*.14,1.25+Math.sin(t*1.4)*.08,.8);approachCraft.rotation.y=t*.12;}
   }
   if(returnCapsule.visible)returnCapsule.position.set(.4,-.9+Math.sin(t*1.6)*.65,-.4);
-  const yaw=.464+rotY,distance=8.94/zoom;camera.position.set(distance*Math.sin(yaw),3.3+rotX*3,distance*Math.cos(yaw));camera.lookAt(0,-.05,0);
+  const yaw=.464+rotY,distance=13.5/zoom;camera.position.set(distance*Math.sin(yaw),3.3+rotX*3,distance*Math.cos(yaw));camera.lookAt(0,-.05,0);
   renderer.render(scene,camera);
  };
  animate();
