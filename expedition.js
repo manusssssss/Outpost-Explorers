@@ -17,8 +17,21 @@ function seed(n){return()=>{n|=0;n=n+0x6D2B79F5|0;let t=Math.imul(n^n>>>15,1|n);
 function height(x,z){const radius=Math.hypot(x,z),flat=THREE.MathUtils.smoothstep(radius,22,45);return (Math.sin(x*.13)*1.4+Math.cos(z*.17)*1.1+Math.sin((x+z)*.09)*1.8)*flat;}
 function disposeRoot(){if(!root)return;const geometries=new Set(),mats=new Set(),textures=new Set();root.traverse(o=>{if(o.geometry)geometries.add(o.geometry);for(const m of Array.isArray(o.material)?o.material:o.material?[o.material]:[]){if(!Object.values(materials).includes(m)){mats.add(m);if(m.map)textures.add(m.map);}}});geometries.forEach(g=>g.dispose());mats.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());scene.remove(root);root=null;}
 function newRoot(){disposeRoot();root=new THREE.Group();scene.add(root);pickables=[];objects={};obstacles=[];wheels=[];solar=[];}
-function planetTexture(mars){const c=document.createElement('canvas');c.width=1024;c.height=512;const ctx=c.getContext('2d'),r=seed(mars?74:19);ctx.fillStyle=mars?'#a65c38':'#90918e';ctx.fillRect(0,0,1024,512);for(let i=0;i<3600;i++){const x=r()*1024,y=r()*512,size=2+r()*38;ctx.fillStyle=mars?`rgba(${100+Math.floor(r()*90)},${45+Math.floor(r()*50)},30,0.16)`:`rgba(${r()>.5?35:220},${r()>.5?45:220},${r()>.5?50:210},0.09)`;ctx.beginPath();ctx.ellipse(x,y,size,size*.5,0,0,Math.PI*2);ctx.fill();if(!mars&&i%12===0){ctx.strokeStyle='#d6d4c755';ctx.lineWidth=2;ctx.stroke();}}if(mars){ctx.fillStyle='#e4e0ce';ctx.beginPath();ctx.ellipse(520,8,260,14,0,0,Math.PI*2);ctx.fill();}const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t;}
-function buildOrbit(){surface=false;newRoot();scene.background=new THREE.Color('#050c18');scene.fog=null;planet=mesh(new THREE.SphereGeometry(8,72,48),new THREE.MeshStandardMaterial({map:planetTexture(world==='Mars'),roughness:1}),root);planet.rotation.z=.15;const orbitMat=new THREE.LineBasicMaterial({color:0x8ab7c3,transparent:true,opacity:.4});const pts=[];for(let i=0;i<=180;i++){const a=i/180*Math.PI*2;pts.push(new THREE.Vector3(Math.cos(a)*12,Math.sin(a)*3,Math.sin(a)*10));}root.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),orbitMat));
+function planetMaterial(mars){
+ if(!mars){
+  const loader=new THREE.TextureLoader();
+  const color=loader.load('./assets/moon-lroc-color.jpg');
+  color.colorSpace=THREE.SRGBColorSpace;
+  const elevation=loader.load('./assets/moon-lola-height.jpg');
+  elevation.colorSpace=THREE.NoColorSpace;
+  return new THREE.MeshStandardMaterial({map:color,bumpMap:elevation,bumpScale:.16,roughness:.96});
+ }
+ const c=document.createElement('canvas');c.width=1024;c.height=512;const ctx=c.getContext('2d'),r=seed(74);ctx.fillStyle='#a65c38';ctx.fillRect(0,0,1024,512);
+ for(let i=0;i<3600;i++){const x=r()*1024,y=r()*512,size=2+r()*38;ctx.fillStyle='rgba(145,70,36,0.16)';ctx.beginPath();ctx.ellipse(x,y,size,size*.5,0,0,Math.PI*2);ctx.fill();}
+ ctx.fillStyle='#e4e0ce';ctx.beginPath();ctx.ellipse(520,8,260,14,0,0,Math.PI*2);ctx.fill();const texture=new THREE.CanvasTexture(c);texture.colorSpace=THREE.SRGBColorSpace;
+ return new THREE.MeshStandardMaterial({map:texture,roughness:1});
+}
+function buildOrbit(){surface=false;newRoot();scene.background=new THREE.Color('#050c18');scene.fog=null;planet=mesh(new THREE.SphereGeometry(8,128,96),planetMaterial(world==='Mars'),root);planet.rotation.z=.15;const orbitMat=new THREE.LineBasicMaterial({color:0x8ab7c3,transparent:true,opacity:.4});const pts=[];for(let i=0;i<=180;i++){const a=i/180*Math.PI*2;pts.push(new THREE.Vector3(Math.cos(a)*12,Math.sin(a)*3,Math.sin(a)*10));}root.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),orbitMat));
  satellite=group(root,10,1,3);box(satellite,.75,.7,.8,material('foil','#d6b576',.65));const antenna=cylinder(satellite,.42,.12,.25,material('white','#e9ebdf',.2),0,.52,0);antenna.rotation.z=-.5;for(const side of [-1,1]){box(satellite,2.2,.05,.95,material('blue','#1e526e',.6,.3),side*1.8,0,0);for(let i=0;i<6;i++)box(satellite,.02,.06,.96,material('grid','#7197a7',.5),side*1.8-.9+i*.36,0,0);}
  scanTargets=[];for(let i=0;i<3;i++){const g=group(root,[-3,2,5][i],[2,3,-1][i],[7.3,7.2,6.2][i]);const marker=mesh(new THREE.TorusGeometry(.35,.065,8,40),new THREE.MeshBasicMaterial({color:i===1?0xd9edac:0xe99b7a}),g);g.userData.target=i;marker.userData.target=i;pickables.push(marker);scanTargets.push(g);}
  scanRing=mesh(new THREE.TorusGeometry(.65,.025,8,70),new THREE.MeshBasicMaterial({color:0xd9edac,transparent:true,opacity:.7}),root,2,3,7.3);scanRing.visible=false;

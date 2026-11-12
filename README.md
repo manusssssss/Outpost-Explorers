@@ -24,3 +24,5 @@ Then visit http://localhost:8080. The site uses JavaScript modules, so opening `
 The files served at the website root are the complete site. Edit them, then commit and push to `main`; GitHub Actions will publish the update. The mission catalogue is a reviewed educational snapshot, not a live or exhaustive mission tracker. Future dates are targets and may change. All 3D terrain and mission procedures are illustrative learning models.
 
 NASA imagery credits appear on the site. No affiliation with or endorsement by NASA or any other space agency is claimed. The outpost is a future concept; there are no inhabited outposts on the Moon or Mars today.
+
+The 3D orbital Moon uses NASA Scientific Visualization Studio's CGI Moon Kit textures: the LROC wide-angle camera global colour mosaic and LOLA elevation data. Source: https://svs.gsfc.nasa.gov/4720/
