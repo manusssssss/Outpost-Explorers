@@ -156,7 +156,7 @@ export function mountMissionDemo(container,mission,ui){
  const onDown=e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture?.(e.pointerId);};
  const onMove=e=>{if(!dragging)return;rotY+=(e.clientX-lastX)*.008;rotX=clamp(rotX+(e.clientY-lastY)*.006,-.65,.65);lastX=e.clientX;lastY=e.clientY;};
  const onUp=()=>{dragging=false;};
- const onWheel=e=>{e.preventDefault();zoom=clamp(zoom+e.deltaY*.001,.78,1.35);};
+ const onWheel=e=>{e.preventDefault();zoom=clamp(zoom-e.deltaY*.001,.72,1.5);};
  canvas.addEventListener('pointerdown',onDown);canvas.addEventListener('pointermove',onMove);canvas.addEventListener('pointerup',onUp);canvas.addEventListener('pointercancel',onUp);canvas.addEventListener('wheel',onWheel,{passive:false});
  const observer=new ResizeObserver(resize);observer.observe(container);
 
@@ -188,7 +188,7 @@ export function mountMissionDemo(container,mission,ui){
    lander.position.y=THREE.MathUtils.damp(lander.position.y,landerTargetY,.8,1/60);lander.rotation.y=Math.sin(t*.4)*.04;
   }
   if(returnCapsule.visible)returnCapsule.position.set(.4,-.9+Math.sin(t*1.6)*.65,-.4);
-  camera.position.set(4*Math.cos(rotY)*zoom,3.3+rotX*3,8*Math.sin(rotY)*zoom);camera.lookAt(0,-.05,0);
+  const yaw=.464+rotY,distance=8.94/zoom;camera.position.set(distance*Math.sin(yaw),3.3+rotX*3,distance*Math.cos(yaw));camera.lookAt(0,-.05,0);
   renderer.render(scene,camera);
  };
  animate();
