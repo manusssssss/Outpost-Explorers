@@ -1,6 +1,6 @@
 import * as THREE from './vendor/three.module.js';
 import {OrbitControls} from './vendor/OrbitControls.js';
-import {stages,stationNotes,assessChoice} from './expedition-missions.js';
+import {stages,stationNotes,assessChoice} from './expedition-missions.js?v=tradeoffs-1';
 const $=s=>document.querySelector(s);
 let renderer,scene,camera,controls,root,planet,satellite,scanRing,rover,wheels=[],solar=[],relayDish,beacon,earth,stars;
 let world='Moon',step=-1,solved=false,surface=false,battery=80,air=84,shield=55,sample=false,sampleQuality='—',linked=false,velocity=0,heading=0;
