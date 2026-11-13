@@ -18,7 +18,7 @@ if (launch) {
     event.preventDefault();
     previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    frame.src = 'trainer/index.html';
+    frame.src = 'trainer/index.html?v=mission-picker-scroll-20261113c';
     dialog.showModal();
   });
 
