@@ -55,8 +55,9 @@
       <input id="online-code" type="text" autocomplete="off" placeholder="Paste invite link or code">
       <button id="online-join" class="online-secondary" type="button">Join session</button>
     </div>
+    <button id="online-reconnect" class="online-secondary" type="button" hidden>Reconnect to crew</button>
     <p id="online-status" class="online-status" role="status" aria-live="polite">Not connected yet</p>
-    <p class="online-footnote">The Cloudflare room relay carries crew messages, mission choices, and astronaut/rover movement. Voice uses a direct browser link and may be blocked on some networks.</p>
+    <p class="online-footnote">The room relay carries crew messages, mission choices, and movement. If a connection drops, leave the host page open while the crew reconnects.</p>
   </aside>
 
   <section class="welcome" id="welcome">
@@ -133,7 +134,7 @@ if (location.protocol === 'file:') {
 }
 </script>
 <script src="./room-config.js?v=cloudflare-room-20261113a"></script>
-<script type="module" src="./trainer.js?v=pro-craters-rock-display-20261113a"></script>
-<script type="module" src="./online-coop.js?v=crew-command-sync-20261113a"></script>
+<script type="module" src="./trainer.js?v=mission-reconnect-20261113a"></script>
+<script type="module" src="./online-coop.js?v=mission-reconnect-20261113a"></script>
 </body></html>
 

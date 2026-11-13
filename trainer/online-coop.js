@@ -11,6 +11,7 @@ const startButton = q('#online-start');
 const chatLog = q('#chat-log');
 const chatInput = q('#chat-input');
 const chatSend = q('#chat-send');
+const reconnectButton = q('#online-reconnect');
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 let socket = null;
@@ -18,6 +19,11 @@ let roomCode = '';
 let role = null;
 let remoteReady = false;
 let connecting = false;
+let reconnectAttempts = 0;
+let reconnectTimer = null;
+let leaving = false;
+let missionStarted = false;
+let resumeApplied = false;
 
 function setStatus(message) { status.textContent = message; }
 function config() { return window.OUTPOST_ROOM_CONFIG || {}; }
@@ -42,6 +48,7 @@ function updateControls() {
   level.disabled = guest;
   hostButton.disabled = connecting || Boolean(socket);
   const ready = connected();
+  toggle.textContent = connecting ? 'Connecting…' : ready ? 'Crew connected' : reconnectTimer ? 'Reconnecting…' : socket ? 'Waiting for crew' : 'Connect crew';
   startButton.disabled = !ready;
   startButton.textContent = guest ? 'Request mission start' : 'Start mission together';
   chatInput.disabled = !ready;
@@ -94,6 +101,9 @@ function startMissionTogether() {
   }
   if (role !== 'host' || !connected()) return;
   startLocalMission(value);
+  missionStarted = true;
+  panel.hidden = true;
+  toggle.setAttribute('aria-expanded', 'false');
   send({ type: 'mission-start', selection: value });
   setStatus('Mission started for both players. Player 1 is Engineer; Player 2 is Scientist.');
 }
@@ -103,6 +113,7 @@ function handleRoomMessage(message) {
     remoteReady = Boolean(message.peerPresent && message.peerRole !== role);
     if (remoteReady) {
       setStatus(role === 'host' ? 'Crew mate connected. Choose a mission, then start together.' : 'Host found. Waiting for mission selection…');
+      reconnectAttempts = 0;
       updateControls();
       if (role === 'guest') send({ type: 'hello' });
     }
@@ -111,6 +122,7 @@ function handleRoomMessage(message) {
   if (message.type === 'peer-joined') {
     remoteReady = true;
     setStatus(role === 'host' ? 'Crew mate connected. Choose a mission, then start together.' : 'Connected to the host. Loading mission details…');
+    reconnectAttempts = 0;
     updateControls();
     if (role === 'host') send({ type: 'mission-selection', selection: selection() });
     else send({ type: 'hello' });
@@ -124,7 +136,9 @@ function handleRoomMessage(message) {
   }
   if (message.type === 'chat' && typeof message.text === 'string') showMessage(message.sender || 'Crew mate', message.text);
   if (message.type === 'hello' && role === 'host') {
-    send({ type: 'mission-selection', selection: selection() });
+    const snapshot = missionStarted ? window.OutpostTrainer?.getSnapshot() : null;
+    if (snapshot) send({ type: 'mission-resume', selection: { world: snapshot.world, region: snapshot.region, level: snapshot.level }, snapshot });
+    else send({ type: 'mission-selection', selection: selection() });
     send({ type: 'ready' });
   }
   if (message.type === 'mission-selection' && role === 'guest') {
@@ -134,7 +148,20 @@ function handleRoomMessage(message) {
   if (message.type === 'mission-start' && role === 'guest') {
     setSelection(message.selection);
     startLocalMission(message.selection);
+    panel.hidden = true;
+    toggle.setAttribute('aria-expanded', 'false');
     setStatus('Mission selected on both devices. You are Player 2 · Scientist.');
+    updateControls();
+  }
+  if (message.type === 'mission-resume' && role === 'guest' && message.selection && message.snapshot) {
+    if (resumeApplied) return;
+    if (!window.OutpostTrainer) { window.addEventListener('outpost:trainer-ready', () => handleRoomMessage(message), { once: true }); return; }
+    startLocalMission(message.selection);
+    if (window.OutpostTrainer.restoreSnapshot(message.snapshot)) {
+      resumeApplied = true;
+      panel.hidden = true; toggle.setAttribute('aria-expanded', 'false');
+      setStatus('Reconnected and caught up with the host’s mission.');
+    } else setStatus('Could not restore this mission. Ask the host to start a new mission.');
     updateControls();
   }
   if (message.type === 'mission-start-request' && role === 'host') startMissionTogether();
@@ -147,6 +174,7 @@ function connectRoom(code, asHost) {
     return;
   }
   if (connecting || socket) return;
+  clearTimeout(reconnectTimer); reconnectTimer = null;
   role = asHost ? 'host' : 'guest';
   roomCode = code;
   connecting = true;
@@ -158,7 +186,9 @@ function connectRoom(code, asHost) {
   const ws = new WebSocket(url);
   socket = ws;
   ws.addEventListener('open', () => {
+    resumeApplied = false;
     connecting = false;
+    reconnectButton.hidden = true;
     inviteBox.hidden = false;
     inviteLink.value = asHost ? inviteUrl(code) : location.href;
     if (asHost) {
@@ -180,13 +210,19 @@ function connectRoom(code, asHost) {
     updateControls();
   });
   ws.addEventListener('close', event => {
+    if (socket !== ws) return;
     connecting = false;
     remoteReady = false;
-    if (socket === ws) socket = null;
-    const reason = event.code === 1008 || event.code === 1013
-      ? 'That player slot is occupied or this invite already has two players. Create a fresh invite.'
-      : 'The room relay disconnected. Check your connection, then join again.';
-    setStatus(reason);
+    socket = null;
+    const occupied = event.code === 1008 || event.code === 1013;
+    reconnectButton.hidden = leaving || !roomCode;
+    if (!leaving && !occupied && reconnectAttempts < 5) {
+      const delay = Math.min(16000, 1000 * 2 ** reconnectAttempts++);
+      setStatus('Connection lost. Reconnecting automatically…');
+      reconnectTimer = setTimeout(() => { if (!socket && !leaving) connectRoom(roomCode, role === 'host'); }, delay);
+    } else if (!leaving) {
+      setStatus(occupied ? 'That player slot is in use. Wait a moment, then press Reconnect.' : 'Connection lost. Check your internet, then press Reconnect.');
+    }
     updateControls();
   });
 }
@@ -237,6 +273,7 @@ q('#online-close').addEventListener('click', () => {
   toggle.focus();
 });
 hostButton.addEventListener('click', createInvite);
+reconnectButton.addEventListener('click', () => { if (!roomCode || socket || connecting) return; reconnectAttempts = 0; connectRoom(roomCode, role === 'host'); });
 q('#online-copy').addEventListener('click', copyInvite);
 q('#online-join').addEventListener('click', () => joinInvite(q('#online-code').value));
 q('#chat-form').addEventListener('submit', sendChat);
@@ -253,6 +290,7 @@ window.OutpostMultiplayer = {
 const incoming = new URLSearchParams(location.search);
 if (incoming.get('room') && incoming.get('transport') === 'room-relay') joinInvite(location.href);
 window.addEventListener('pagehide', () => {
+  leaving = true; clearTimeout(reconnectTimer);
   try { socket?.close(1000, 'page hidden'); } catch { }
 });
 updateControls();
