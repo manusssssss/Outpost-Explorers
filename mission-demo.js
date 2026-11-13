@@ -271,7 +271,7 @@ function makeLander(){
 
 export function mountMissionDemo(container,mission,ui){
  const steps=missionSteps(mission);let step=0,frame=0,disposed=false,dragging=false,lastX=0,lastY=0,rotX=0,rotY=0,zoom=1;
- const type=mission.type.toLowerCase(),name=mission.name.toLowerCase(),apollo9=name==='apollo 9',apollo10=name==='apollo 10',apollo11=name==='apollo 11',chandrayaan2=name==='chandrayaan-2',chandrayaan3=name==='chandrayaan-3',artemis=/^artemis [i|ii]+$/.test(name),isOrbital=(/orbiter|flyby|orbit/.test(type)||apollo9||apollo10||artemis)&&!chandrayaan2&&!chandrayaan3,isReturn=/sample return/.test(type);
+ const type=mission.type.toLowerCase(),name=mission.name.toLowerCase(),apollo9=name==='apollo 9',apollo10=name==='apollo 10',apollo11=name==='apollo 11',chandrayaan2=name==='chandrayaan-2',chandrayaan3=name==='chandrayaan-3',artemis=/^artemis (?:i|ii)$/.test(name),isFlyby=/flyby/.test(type)||name==='luna 1'||name==='artemis ii',isOrbital=(/orbiter|orbit/.test(type)||apollo9||apollo10||(artemis&&name!=='artemis ii'))&&!isFlyby&&!chandrayaan2&&!chandrayaan3,isSpaceScene=isOrbital||isFlyby,isReturn=/sample return/.test(type);
  container.innerHTML='<canvas class="mission-demo-canvas" aria-label="Interactive three-dimensional illustration of '+mission.name.replace(/[&<>"']/g,'')+'"></canvas><div class="mission-demo-hint">DRAG TO ROTATE · SCROLL TO ZOOM</div>';
  const canvas=container.querySelector('canvas'),renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'low-power'});
  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.setSize(container.clientWidth,container.clientHeight,false);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -299,7 +299,7 @@ export function mountMissionDemo(container,mission,ui){
  const halo=new THREE.Mesh(new THREE.TorusGeometry(.36,.028,8,32),new THREE.MeshBasicMaterial({color:0xdde9a5}));halo.rotation.x=Math.PI/2;halo.position.y=.03;target.add(halo);
  const lander=makeLander();lander.position.set(.4,-1.43,-.4);scene.add(lander);
  const rover=makeRover();rover.group.position.set(-2.1,-1.43,.3);scene.add(rover.group);
- const orbitRing=new THREE.Mesh(new THREE.TorusGeometry(2.12,.012,8,96),new THREE.MeshBasicMaterial({color:0x8bd4cf,transparent:true,opacity:.72}));orbitRing.rotation.x=.48;planetGroup.add(orbitRing);
+ const orbitRing=new THREE.Mesh(new THREE.TorusGeometry(2.65,.012,8,96),new THREE.MeshBasicMaterial({color:0x8bd4cf,transparent:true,opacity:.72}));orbitRing.rotation.x=.48;planetGroup.add(orbitRing);
  const satellite=new THREE.Group();
  const bus=new THREE.Mesh(new THREE.BoxGeometry(.42,.36,.38),new THREE.MeshStandardMaterial({color:0xd9dfd4,metalness:.58,roughness:.3}));satellite.add(bus);
  const panelMat=new THREE.MeshStandardMaterial({color:0x37728b,metalness:.5,roughness:.35});
@@ -336,20 +336,20 @@ export function mountMissionDemo(container,mission,ui){
   approachCraft.visible=!isOrbital&&step<landerVisibleFrom;lander.visible=!isOrbital&&step>=landerVisibleFrom;rover.group.visible=!isOrbital&&step>=touchdownStep&&(/rover/.test(type)||steps.some(x=>/rover/i.test(x[0])));
   sample.visible=/sample/.test(type)&&step>=steps.length-2;
   returnCapsule.visible=isReturn&&step===steps.length-1;
-  satellite.visible=!flagship&&(isOrbital||step===steps.length-1);
+  satellite.visible=!flagship&&(isSpaceScene||step===steps.length-1);orbitRing.visible=isOrbital;
   earthGroup.visible=apollo9;
-  if(isOrbital){planetGroup.visible=!apollo9;surface.visible=false;target.visible=false;rover.group.visible=false;lander.visible=false;}
+  if(isSpaceScene){planetGroup.visible=!apollo9;surface.visible=false;target.visible=false;rover.group.visible=false;lander.visible=false;}
   else{planetGroup.visible=false;surface.visible=true;target.visible=true;}
   if(flagship){
    flagship.visible=true;approachCraft.visible=false;lander.visible=false;rover.group.visible=false;returnCapsule.visible=false;sample.visible=false;
    const command=flagship.getObjectByName('command'),lm=flagship.getObjectByName('lunar-module'),probe=flagship.getObjectByName('impact-probe');
    if(apollo9){
     planetGroup.visible=false;earthGroup.visible=true;surface.visible=false;target.visible=false;
-    if(command)command.position.set(step===1?-2.45:-2.25,.25,.12);
-    if(lm){lm.visible=step>0;lm.position.set(step===1?-3.25:step===2?-2.9:-2.7,step===1?.15:step===2?.35:.25,step===1?.15:step===2?.25:.1);}
+    if(command)command.position.set(-2.25,.25,.12);
+    if(lm){lm.visible=true;lm.position.set(step===0?-2.2:step===1?2.45:step===2?-1.25:-2.2,step===1?.15:.25,step===1?.35:.12);}
    }else if(apollo10){
     planetGroup.visible=true;surface.visible=false;target.visible=false;
-    if(command)command.position.set(step>=2?2.55:2.25,.48,.2);
+    if(command)command.position.set(step>=2?3.05:2.85,.48,.2);
     if(lm){lm.visible=step>=1;lm.position.set(step===1?-.9:step===2?-.75:-.55,step===2?1.72:1.95,step===2?.2:.1);}
    }else if(apollo11){
     planetGroup.visible=false;surface.visible=true;target.visible=true;
@@ -386,8 +386,8 @@ export function mountMissionDemo(container,mission,ui){
  ui.previous.addEventListener('click',previous);ui.next.addEventListener('click',next);showStep();resize();
  const animate=()=>{
   if(disposed)return;frame=requestAnimationFrame(animate);const t=performance.now()*.001;
-  planetGroup.rotation.y=t*.065;earthGroup.rotation.y=t*.045;if(flagship){flagship.rotation.y=(apollo9||apollo10||artemis?0.12:0.03)+Math.sin(t*.35)*.025;if(name==='perseverance / ingenuity'){flagship.position.x=-1.35+(step/(steps.length-1))*2.1;flagship.traverse(o=>{if(o.name==='rover-wheel')o.rotation.z=-t*1.8;});const ing=flagship.getObjectByName('ingenuity');if(ing){const blade=ing.getObjectByName('rotor-blade');if(blade)blade.rotation.y=t*12;ing.position.y=.38+(step>=2?Math.sin(t*4)*.18:0);}}if(chandrayaan3){const r=flagship.getObjectByName('rover');if(r)r.traverse(o=>{if(o.name==='rover-wheel')o.rotation.z=-t*1.2;});}}
-  satellite.position.set(Math.cos(t*.34)*2.12,Math.sin(t*.34)*.78,Math.sin(t*.34)*1.35);
+  planetGroup.rotation.y=t*.065;earthGroup.rotation.y=t*.045;if(flagship){flagship.rotation.y=(apollo9||apollo10||artemis?0.12:0.03)+Math.sin(t*.35)*.025;if(name==='luna 1'){const pass=(t*.055)%1;flagship.position.set(-3.6+pass*7,.7+Math.sin(pass*Math.PI)*.28,.2);}if((apollo9||apollo10||artemis&&name!=='artemis ii'||name==='chandrayaan-1')&&step<steps.length){const radius=apollo9?2.75:2.72;flagship.position.set(Math.cos(t*.14)*radius,.38+Math.sin(t*.14)*.35,Math.sin(t*.14)*radius);}if(name==='perseverance / ingenuity'){flagship.position.x=-1.35+(step/(steps.length-1))*2.1;flagship.traverse(o=>{if(o.name==='rover-wheel')o.rotation.z=-t*1.8;});const ing=flagship.getObjectByName('ingenuity');if(ing){const blade=ing.getObjectByName('rotor-blade');if(blade)blade.rotation.y=t*12;ing.position.y=.38+(step>=2?Math.sin(t*4)*.18:0);}}if(chandrayaan3){const r=flagship.getObjectByName('rover');if(r)r.traverse(o=>{if(o.name==='rover-wheel')o.rotation.z=-t*1.2;});}}
+  if(isFlyby&&!flagship){const path=(t*.24)%1;satellite.position.set(-3.5+path*7,.45+Math.sin(path*Math.PI)*.25,0);}else satellite.position.set(Math.cos(t*.34)*2.12,Math.sin(t*.34)*.78,Math.sin(t*.34)*1.35);
   satellite.rotation.y=-t*.34;
   if(!isOrbital){
   const travel=step/(steps.length-1);rover.group.position.x=-2.1+travel*3.1;rover.group.rotation.y=.12+travel*.18;
