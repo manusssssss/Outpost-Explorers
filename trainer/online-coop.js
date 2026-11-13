@@ -8,9 +8,19 @@ const inviteBox = $('#online-invite');
 const inviteLink = $('#online-link');
 const hostButton = $('#online-host');
 const startButton = $('#online-start');
+const chatLog = $('#chat-log');
+const chatInput = $('#chat-input');
+const chatSend = $('#chat-send');
+const voiceButton = $('#voice-toggle');
+const voiceEndButton = $('#voice-end');
+const voiceStatus = $('#voice-status');
+const remoteAudio = $('#remote-audio');
 let peer = null;
 let connection = null;
 let role = null;
+let localStream = null;
+let activeCall = null;
+let remoteVoiceReady = false;
 
 function setStatus(message) {
   status.textContent = message;
@@ -42,6 +52,112 @@ function updateRoleControls() {
   level.disabled = isGuest;
   hostButton.disabled = isGuest || Boolean(peer);
   startButton.disabled = isGuest || !connection?.open;
+  const connected = Boolean(connection?.open);
+  chatInput.disabled = !connected;
+  chatSend.disabled = !connected;
+  voiceButton.disabled = !connected;
+  voiceEndButton.disabled = !connected || !localStream;
+}
+
+function showMessage(sender, text, own = false) {
+  chatLog.querySelector('.chat-empty')?.remove();
+  const row = document.createElement('p');
+  row.className = `chat-message${own ? ' mine' : ''}`;
+  const heading = document.createElement('b');
+  heading.textContent = sender;
+  const body = document.createElement('span');
+  body.textContent = String(text).slice(0, 400);
+  row.append(heading, body);
+  chatLog.append(row);
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+function voiceMessage(message) {
+  voiceStatus.textContent = message;
+}
+
+function closeVoiceCall() {
+  const call = activeCall;
+  activeCall = null;
+  if (call) call.close();
+  remoteAudio.srcObject = null;
+}
+
+function watchVoiceCall(call) {
+  activeCall = call;
+  call.on('stream', stream => {
+    remoteAudio.srcObject = stream;
+    remoteAudio.play().then(() => voiceMessage('Voice connected. Use the microphone button to mute or unmute.'))
+      .catch(() => voiceMessage('Voice connected. Tap Play on the audio control to hear your crew mate.'));
+  });
+  call.on('close', () => {
+    if (activeCall === call) {
+      activeCall = null;
+      remoteAudio.srcObject = null;
+      voiceMessage('Voice link ended. You can start it again from this panel.');
+    }
+  });
+  call.on('error', () => voiceMessage('Voice could not connect. Check microphone permission and try again.'));
+}
+
+function startVoiceCall() {
+  if (role !== 'host' || !localStream || !remoteVoiceReady || !connection?.open || activeCall) return;
+  const call = peer.call(connection.peer, localStream);
+  watchVoiceCall(call);
+  voiceMessage('Calling your crew mate…');
+}
+
+function stopLocalVoice() {
+  localStream?.getTracks().forEach(track => track.stop());
+  localStream = null;
+  voiceButton.textContent = 'Enable microphone';
+  voiceEndButton.disabled = true;
+  closeVoiceCall();
+}
+
+async function toggleMicrophone() {
+  if (!localStream) {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      voiceMessage('This browser cannot use a microphone here. Try a current browser on the secure website.');
+      return;
+    }
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (error) {
+      voiceMessage(error?.name === 'NotAllowedError'
+        ? 'Microphone permission was not allowed. Use the browser permission control, then try again.'
+        : 'Could not open a microphone. Check that one is connected, then try again.');
+      return;
+    }
+    localStream.getAudioTracks().forEach(track => { track.enabled = true; });
+    voiceButton.textContent = 'Mute microphone';
+    send({ type: 'voice-ready', ready: true });
+    voiceMessage('Microphone is on. Your crew mate must also enable theirs to start voice chat.');
+    updateRoleControls();
+    startVoiceCall();
+    return;
+  }
+
+  const track = localStream.getAudioTracks()[0];
+  if (!track) return;
+  track.enabled = !track.enabled;
+  voiceButton.textContent = track.enabled ? 'Mute microphone' : 'Unmute microphone';
+  voiceMessage(track.enabled ? 'Microphone is on.' : 'Microphone is muted. You can still hear your crew mate.');
+}
+
+function endVoice() {
+  send({ type: 'voice-ready', ready: false });
+  stopLocalVoice();
+  voiceMessage('Voice chat ended. Your text chat stays connected.');
+}
+
+function sendChat(event) {
+  event.preventDefault();
+  const text = chatInput.value.trim().slice(0, 400);
+  if (!text || !connection?.open) return;
+  send({ type: 'chat', text, sender: role === 'host' ? 'Player 1 · Engineer' : 'Player 2 · Scientist' });
+  showMessage('You', text, true);
+  chatInput.value = '';
 }
 
 function inviteUrl(peerId) {
@@ -70,6 +186,19 @@ function startLocalMission(value) {
 
 function handleMessage(message) {
   if (!message || typeof message !== 'object') return;
+  if (message.type === 'chat' && typeof message.text === 'string') {
+    showMessage(message.sender || 'Crew mate', message.text);
+  }
+  if (message.type === 'voice-ready') {
+    remoteVoiceReady = Boolean(message.ready);
+    if (role === 'host' && remoteVoiceReady) startVoiceCall();
+    if (role === 'host' && !remoteVoiceReady && activeCall) {
+      closeVoiceCall();
+      voiceMessage('Your crew mate ended voice chat. Text chat stays connected.');
+    }
+    if (!remoteVoiceReady && role === 'guest' && activeCall) closeVoiceCall();
+    if (remoteVoiceReady && !localStream) voiceMessage('Your crew mate is ready for voice. Enable your microphone to join.');
+  }
   if (message.type === 'hello' && role === 'host') {
     setStatus('Crew mate connected. Choose a mission and start together.');
     send({ type: 'mission-selection', selection: selection() });
@@ -109,6 +238,8 @@ function attachConnection(conn) {
   connection.on('data', handleMessage);
   connection.on('close', () => {
     connection = null;
+    remoteVoiceReady = false;
+    stopLocalVoice();
     startButton.disabled = true;
     setStatus('Crew mate disconnected. Create or join a new invite to reconnect.');
     updateRoleControls();
@@ -128,6 +259,16 @@ function makePeer() {
       ? 'That invite is no longer available. Ask the host to create a new link.'
       : 'Could not connect through the online service. Try again in a moment.';
     setStatus(text);
+  });
+  peer.on('call', call => {
+    if (role !== 'guest' || !localStream) {
+      call.close();
+      voiceMessage('Enable your microphone before your crew mate starts voice chat.');
+      return;
+    }
+    watchVoiceCall(call);
+    call.answer(localStream);
+    voiceMessage('Connecting voice chat…');
   });
   return peer;
 }
@@ -187,6 +328,9 @@ $('#online-close').addEventListener('click', () => {
 hostButton.addEventListener('click', createInvite);
 $('#online-copy').addEventListener('click', copyInvite);
 $('#online-join').addEventListener('click', () => joinInvite($('#online-code').value));
+$('#chat-form').addEventListener('submit', sendChat);
+voiceButton.addEventListener('click', toggleMicrophone);
+voiceEndButton.addEventListener('click', endVoice);
 $('#online-code').addEventListener('keydown', event => {
   if (event.key === 'Enter') joinInvite($('#online-code').value);
 });
