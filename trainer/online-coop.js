@@ -81,11 +81,13 @@ function closeVoiceCall() {
   activeCall = null;
   if (call) call.close();
   remoteAudio.srcObject = null;
+  remoteAudio.hidden = true;
 }
 
 function watchVoiceCall(call) {
   activeCall = call;
   call.on('stream', stream => {
+    remoteAudio.hidden = false;
     remoteAudio.srcObject = stream;
     remoteAudio.play().then(() => voiceMessage('Voice connected. Use the microphone button to mute or unmute.'))
       .catch(() => voiceMessage('Voice connected. Tap Play on the audio control to hear your crew mate.'));
@@ -233,6 +235,7 @@ function attachConnection(conn) {
       setStatus('Crew mate connected. Choose a mission and start together.');
       send({ type: 'mission-selection', selection: selection() });
     }
+    voiceMessage('Connected. Text chat is ready; both players can enable their microphones for voice.');
     updateRoleControls();
   });
   connection.on('data', handleMessage);
