@@ -43,7 +43,7 @@
       <button id="voice-toggle" class="online-secondary" type="button" disabled>Enable microphone</button>
       <button id="voice-end" class="online-secondary" type="button" disabled>End voice chat</button>
       <p id="voice-status" class="voice-status" role="status" aria-live="polite">Connect to a crew mate before starting voice chat.</p>
-      <audio id="remote-audio" controls autoplay playsinline aria-label="Crew mate voice audio"></audio>
+      <audio id="remote-audio" controls autoplay playsinline aria-label="Crew mate voice audio" hidden></audio>
     </section>
     <div class="online-join"><label class="online-label" for="online-code">Or paste a friend’s invite link or code</label>
       <input id="online-code" type="text" autocomplete="off" placeholder="Paste invite link or code"><button id="online-join" class="online-secondary" type="button">Join session</button></div>
@@ -126,5 +126,5 @@ if (location.protocol === 'file:') {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js" crossorigin="anonymous"></script>
 <script type="module" src="./trainer.js?v=crew-lab-missions-20261113i"></script>
-<script type="module" src="./online-coop.js?v=invite-lobby-20261113b"></script>
+<script type="module" src="./online-coop.js?v=invite-lobby-20261113c"></script>
 </body></html>
