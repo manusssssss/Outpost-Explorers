@@ -28,6 +28,7 @@ const rows = [
 ['Surveyor programme','Moon','NASA',1966,'Past','Programme','Tested soft landings before Apollo.','Five successful Surveyors studied the surface.','ranger'],
 ['Lunar Orbiter programme','Moon','NASA',1966,'Past','Programme','Mapped possible Apollo landing areas.','Pictures helped planners avoid dangerous ground.','moon'],
 ['Apollo 8','Moon','NASA',1968,'Past','Crewed orbiter','First crew to orbit the Moon.','Astronauts saw Earth rising above the lunar horizon.','apollo'],
+['Apollo 9','Moon','NASA',1969,'Past','Crewed test','Tested the complete Apollo spacecraft and Lunar Module in Earth orbit.','Apollo 9 did not travel to or orbit the Moon; it rehearsed docking, spacewalks and Lunar Module operations in Earth orbit.','apollo'],
 ['Apollo 10','Moon','NASA',1969,'Past','Crewed test','Practised landing procedures in lunar orbit.','Its lunar module approached the surface without landing.','apollo'],
 ['Apollo 11','Moon','NASA',1969,'Past','Crewed lander','First people walked on the Moon.','Neil Armstrong and Buzz Aldrin explored while Michael Collins orbited.','apollo'],
 ['Apollo 12','Moon','NASA',1969,'Past','Crewed lander','Made a precise landing near Surveyor 3.','Astronauts examined an earlier robotic explorer.','apollo'],
@@ -105,4 +106,36 @@ const rows = [
 ['Rosalind Franklin','Mars','ESA / NASA partners',2028,'Planned','Rover','Plans to drill below the surface to search for preserved clues.','ESA identifies launch opportunities in late 2028.','exomars'],
 ['Tianwen-3','Mars','CNSA / partners',null,'Planned','Sample return','An announced Mars sample-return mission.','Its goal is to bring Martian material to Earth; timing can change.','china']
 ];
-export const missions=rows.map((r,i)=>({id:'mission-'+i,name:r[0],world:r[1],agency:r[2],year:r[3],status:r[4],type:r[5],summary:r[6],fact:r[7],source:sources[r[8]]}));
+// Launch dates are shown in DD/MM/YYYY. Grouped programmes list each represented spacecraft's launch date.
+const launchDates={
+ 'Luna 1':'02/01/1959','Luna 2':'12/09/1959','Luna 3':'04/10/1959',
+ 'Ranger programme':'23/08/1961','Luna 9':'31/01/1966','Luna 10':'31/03/1966',
+ 'Surveyor programme':'30/05/1966','Lunar Orbiter programme':'10/08/1966',
+ 'Apollo 8':'21/12/1968','Apollo 9':'03/03/1969','Apollo 10':'18/05/1969','Apollo 11':'16/07/1969',
+ 'Apollo 12':'14/11/1969','Apollo 13':'11/04/1970','Luna 16':'12/09/1970','Luna 17 / Lunokhod 1':'10/11/1970',
+ 'Apollo 14':'31/01/1971','Apollo 15':'26/07/1971','Apollo 16':'16/04/1972','Apollo 17':'07/12/1972',
+ 'Luna 21 / Lunokhod 2':'08/01/1973','Luna 24':'09/08/1976','Hiten':'24/01/1990',
+ 'Clementine':'25/01/1994','Lunar Prospector':'07/01/1998','SMART-1':'27/09/2003',
+ 'SELENE / Kaguya':'14/09/2007','Chang’e 1 & 2':'24/10/2007 · 01/10/2010',
+ 'Chandrayaan-1':'22/10/2008','Lunar Reconnaissance Orbiter':'18/06/2009','LCROSS':'18/06/2009',
+ 'GRAIL':'10/09/2011','LADEE':'07/09/2013','Chang’e 3 / Yutu':'01/12/2013',
+ 'Chang’e 4 / Yutu-2':'07/12/2018','Chandrayaan-2':'22/07/2019','Beresheet':'22/02/2019',
+ 'Chang’e 5':'23/11/2020','CAPSTONE':'28/06/2022','Danuri':'04/08/2022','Artemis I':'16/11/2022',
+ 'Chandrayaan-3':'14/07/2023','SLIM':'06/09/2023','Luna 25':'10/08/2023',
+ 'Peregrine Mission One':'08/01/2024','IM-1 / Odysseus':'15/02/2024','Chang’e 6':'03/05/2024',
+ 'Blue Ghost Mission 1':'15/01/2025','Artemis II':'01/04/2026',
+ 'Mariner 3 & 4':'05/11/1964 · 28/11/1964','Mariner 6 & 7':'24/02/1969 · 27/03/1969',
+ 'Mariner 9':'30/05/1971','Mars 2 & 3':'19/05/1971 · 28/05/1971',
+ 'Mars 4–7':'21/07/1973 · 25/07/1973 · 05/08/1973 · 09/08/1973',
+ 'Viking 1 & 2':'20/08/1975 · 09/09/1975','Phobos 1 & 2':'07/07/1988 · 12/07/1988',
+ 'Mars Observer':'25/09/1992','Mars Global Surveyor':'07/11/1996','Pathfinder / Sojourner':'04/12/1996',
+ 'Nozomi':'03/07/1998','Mars Climate Orbiter':'11/12/1998','Mars Polar Lander':'03/01/1999',
+ '2001 Mars Odyssey':'07/04/2001','Mars Express':'02/06/2003','Beagle 2':'02/06/2003',
+ 'Spirit & Opportunity':'10/06/2003 · 07/07/2003','Mars Reconnaissance Orbiter':'12/08/2005',
+ 'Phoenix':'04/08/2007','Curiosity':'26/11/2011','Phobos-Grunt / Yinghuo-1':'08/11/2011',
+ 'Mars Orbiter Mission':'05/11/2013','MAVEN':'18/11/2013','ExoMars Trace Gas Orbiter':'14/03/2016',
+ 'Schiaparelli':'14/03/2016','InSight':'05/05/2018','Hope / Al Amal':'19/07/2020',
+ 'Tianwen-1 / Zhurong':'23/07/2020','Perseverance / Ingenuity':'30/07/2020','MMX':'20/10/2026'
+};
+const featuredNames=new Set(['Luna 1','Luna 9','Apollo 9','Apollo 10','Apollo 11','Chandrayaan-1','Chandrayaan-2','Chandrayaan-3','Artemis I','Artemis II','Chang’e 3 / Yutu','Chang’e 4 / Yutu-2','Chang’e 5','Chang’e 6','SELENE / Kaguya','Mars Express','Mars Orbiter Mission','Hope / Al Amal','Tianwen-1 / Zhurong','Perseverance / Ingenuity','Danuri','SLIM','IM-1 / Odysseus','Blue Ghost Mission 1']);
+export const missions=rows.map((r,i)=>({id:'mission-'+i,name:r[0],world:r[1],agency:r[2],year:r[3],status:r[4],type:r[5],summary:r[6],fact:r[7],source:sources[r[8]],launchDate:launchDates[r[0]]??null,featured:featuredNames.has(r[0])}));
