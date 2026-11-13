@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0d1a23">
   <meta name="description" content="Explore Moon and Mars outposts, walk with two astronauts, drive the rover, and solve science missions together.">
   <title>Moon & Mars Mission Trainer | Outpost Explorers</title>
-  <link rel="stylesheet" href="trainer.css?v=mission-picker-scroll-20261113c">
+  <link rel="stylesheet" href="trainer.css?v=online-crew-20261113a">
 
 </head>
 <body>
@@ -16,6 +16,28 @@
     <a href="../#outpost" target="_top" class="brand" aria-label="Junior Astronaut Mission Trainer home">✳ <span>JUNIOR ASTRONAUT<small>MISSION TRAINER · EXPLORATION LAB</small></span></a>
     <span id="location">MISSION PREPARATION</span>
   </header>
+  <button id="online-toggle" class="online-toggle" type="button" aria-expanded="false" aria-controls="online-panel">Connect crew</button>
+  <aside id="online-panel" class="online-panel" aria-label="Online crew connection" hidden>
+    <div class="online-panel-heading"><div><p class="eyebrow">ONLINE CREW</p><h2>Invite a crew mate</h2></div><button id="online-close" class="online-close" type="button" aria-label="Close online crew panel">×</button></div>
+    <p class="online-intro">Create an invite link and share it with one person. They can open it to join your session.</p>
+    <label class="online-label" for="online-mission">Choose the mission</label>
+    <select id="online-mission">
+      <option value="Moon|shackleton">Moon · Shackleton Rim Link</option><option value="Moon|haworth">Moon · Haworth Cold-Trap Route</option>
+      <option value="Moon|faustini">Moon · Faustini Shadow Survey</option><option value="Moon|cabeus">Moon · Cabeus Volatile Search</option>
+      <option value="Mars|jezero">Mars · Jezero Delta Archive</option><option value="Mars|utopia">Mars · Utopia Ice Map</option>
+      <option value="Mars|arcadia">Mars · Arcadia Ice Traverse</option><option value="Mars|gale">Mars · Gale Crater Mineral Lab</option>
+    </select>
+    <label class="online-label" for="online-level">Mission level</label>
+    <select id="online-level"><option value="beginner">Beginner</option><option value="pro">Pro</option></select>
+    <button id="online-host" class="online-primary" type="button">Create invite link</button>
+    <div id="online-invite" hidden><label class="online-label" for="online-link">Invite link</label><input id="online-link" type="url" readonly>
+      <button id="online-copy" class="online-secondary" type="button">Copy invite link</button><button id="online-start" class="online-primary" type="button" disabled>Start mission together</button></div>
+    <div class="online-join"><label class="online-label" for="online-code">Or paste a friend’s invite link or code</label>
+      <input id="online-code" type="text" autocomplete="off" placeholder="Paste invite link or code"><button id="online-join" class="online-secondary" type="button">Join session</button></div>
+    <p id="online-status" class="online-status" role="status" aria-live="polite">Not connected yet</p>
+    <p class="online-footnote">This invite connects two browsers and shares mission selection. Player movement and mission progress still run separately on each device.</p>
+  </aside>
+
 
   <section class="welcome" id="welcome">
     <p class="eyebrow">SPACE SCIENCE FOR YOUNG EXPLORERS · AGES 7–12</p>
@@ -89,5 +111,7 @@ if (location.protocol === 'file:') {
   }, 12000);
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js" crossorigin="anonymous"></script>
 <script type="module" src="./trainer.js?v=crew-lab-missions-20261113i"></script>
+<script type="module" src="./online-coop.js?v=invite-lobby-20261113a"></script>
 </body></html>
