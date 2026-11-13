@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0d1a23">
+  <meta name="description" content="Explore Moon and Mars outposts, walk with two astronauts, drive the rover, and solve science missions together.">
+  <title>Moon & Mars Mission Trainer | Outpost Explorers</title>
+  <link rel="stylesheet" href="trainer.css?v=co-op-outpost-20261113c">
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+</head>
+<body>
+<main class="expedition">
+  <div id="viewport" aria-label="Interactive 3D Moon and Mars mission scene"></div>
+  <header class="flight-header">
+    <a href="../#outpost" target="_top" class="brand" aria-label="Junior Astronaut Mission Trainer home">✳ <span>JUNIOR ASTRONAUT<small>MISSION TRAINER · EXPLORATION LAB</small></span></a>
+    <span id="location">MISSION PREPARATION</span>
+  </header>
+
+  <section class="welcome" id="welcome">
+    <p class="eyebrow">SPACE SCIENCE FOR YOUNG EXPLORERS · AGES 7–12</p>
+    <h1>Can you help a crew<br>live on another world?</h1>
+    <p>Pick a level and a world. Team up as Engineer and Scientist, walk with two crew members, drive the rover, solve field problems, and send your findings home.</p>
+    <div class="level-picker" role="group" aria-label="Choose mission difficulty">
+      <button class="level-option selected" data-level="beginner" aria-pressed="true"><b>Beginner</b><small>Short instructions, simple tasks, and more supplies.</small></button>
+      <button class="level-option" data-level="pro" aria-pressed="false"><b>Pro</b><small>More choices, tighter supplies, and deeper science.</small></button>
+    </div>
+    <div class="destinations">
+      <button data-destination="Moon" data-region="shackleton"><span>☾</span><b>Moon · Shackleton Rim Link</b><small>Long sunlight on the rim sits beside a permanently shadowed ice prospect.</small></button>
+      <button data-destination="Moon" data-region="haworth"><span>☾</span><b>Moon · Haworth Cold-Trap Route</b><small>Scan a very cold crater for possible ice; the amount and access are uncertain.</small></button>
+      <button data-destination="Moon" data-region="faustini"><span>☾</span><b>Moon · Faustini Shadow Survey</b><small>Compare a sunlit work ridge with a cold, shadowed crater floor.</small></button>
+      <button data-destination="Moon" data-region="cabeus"><span>☾</span><b>Moon · Cabeus Volatile Search</b><small>Plan a clean sample test where lunar impact evidence hints at frozen material.</small></button>
+      <button data-destination="Mars" data-region="jezero"><span>◉</span><b>Mars · Jezero Delta Archive</b><small>Clay-bearing river sediments preserve clues about ancient water, not a supply today.</small></button>
+      <button data-destination="Mars" data-region="utopia"><span>◉</span><b>Mars · Utopia Ice Map</b><small>Orbital radar suggests buried ice; depth and local access need surface checks.</small></button>
+      <button data-destination="Mars" data-region="arcadia"><span>◉</span><b>Mars · Arcadia Ice Traverse</b><small>Investigate a mid-latitude ice prospect while managing dust and panel power.</small></button>
+      <button data-destination="Mars" data-region="gale"><span>◉</span><b>Mars · Gale Crater Mineral Lab</b><small>Study layered rocks and a long record of environmental change.</small></button>
+    </div>
+    <div class="welcome-note"><b>Two-player local co-op · one shared screen</b><br>Player 1 is the Engineer (W/A/S/D). Player 2 is the Scientist (arrow keys). Use the crew button to switch viewpoint. <br><b>Choose a science lead, not a guaranteed water source.</b><br>Site rings weigh possible ice or water-shaped minerals alongside light, route safety, and signal access. Orbital clues need ground checks before a crew could count on water. These are training locations, not selected bases.</div>
+    <details class="source-drawer"><summary>Where the science comes from</summary><p>NASA and partner-agency references guide the lessons. The 3D rover terrain is an illustrative training scene, not a mapped landing site. The orbiting Moon uses LROC colour and LOLA elevation maps; NASA Mars Trek is linked for real mapped Mars terrain. Game supplies are simplified teaching units.</p><p><a href="https://science.nasa.gov/moon/facts/" target="_blank" rel="noopener">NASA: The Moon has no permanent dark side ↗</a><br><a href="https://science.nasa.gov/resource/shackleton-craters-illuminated-rim-shadowed-interior/" target="_blank" rel="noopener">NASA: Shackleton’s bright rim beside shadowed ground ↗</a><br><a href="https://science.nasa.gov/solar-system/moon/nasas-lro-lunar-ice-deposits-are-widespread/" target="_blank" rel="noopener">NASA: Ice indicators in several permanently shadowed craters ↗</a><br><a href="https://science.nasa.gov/resource/perseverance-explores-the-jezero-crater-delta/" target="_blank" rel="noopener">NASA: Jezero’s ancient river delta ↗</a><br><a href="https://science.nasa.gov/resource/location-of-large-subsurface-water-ice-deposit-in-utopia-planitia-mars/" target="_blank" rel="noopener">NASA: Radar-mapped ice deposit in Utopia Planitia ↗</a><br><a href="https://science.nasa.gov/resource/arcadia-planitia/" target="_blank" rel="noopener">NASA: Arcadia Planitia and possible ground ice ↗</a><br><a href="https://science.nasa.gov/mission/lcross/" target="_blank" rel="noopener">NASA: LCROSS Cabeus crater water evidence ↗</a><br><a href="https://science.nasa.gov/resource/sedimentation-and-erosion-in-gale-crater-mars/" target="_blank" rel="noopener">NASA: Gale Crater sediment layers ↗</a><br><a href="https://www.spaceappschallenge.org/2026/challenges/junior-astronaut-mission-trainer/" target="_blank" rel="noopener">Read the NASA Space Apps challenge brief ↗</a></p><p>This independent educational project is not affiliated with or endorsed by NASA.</p><p class="asset-credit">Astronaut: “Astronaut by Jungle Jim,” CC BY 4.0, rigged and animated with Mixamo. <a href="https://sketchfab.com/3d-models/astronaut-by-jungle-jim-c775a977606a4e4e990afe783c6bc845" target="_blank" rel="noopener">Original model ↗</a> · <a href="https://www.mixamo.com/" target="_blank" rel="noopener">Mixamo animation service ↗</a><br>Pressurized rover and habitat demonstrator: NASA Langley concept models, shown here as educational concepts and recoloured without NASA marks. This independent project is not endorsed by NASA. <a href="https://science.nasa.gov/3d-resources/space-exploration-vehicle/" target="_blank" rel="noopener">Space Exploration Vehicle ↗</a> · <a href="https://science.nasa.gov/3d-resources/habitat-demonstration-unit/" target="_blank" rel="noopener">Habitat Demonstration Unit ↗</a><br></p></details>
+  </section>
+
+  <aside id="mission-panel" class="mission-panel" hidden>
+    <div class="chapter"><span id="chapter">ORBITAL SURVEY</span><button id="restart" title="Choose another world">New mission ↻</button></div>
+    <div class="progress-track"><span id="progress-bar"></span></div>
+    <p class="eyebrow" id="mentor">MISSION COACH</p>
+    <h2 id="objective"></h2>
+    <p id="brief"></p>
+    <div id="actions"></div>
+    <div id="team-jobs" aria-label="Simultaneous Engineer and Scientist duties"></div>
+    <div id="feedback" role="status" aria-live="polite"></div>
+    <button id="next" class="action primary" hidden>Continue →</button>
+    <div class="resource-board" aria-label="Supply reserves">
+      <div><span>POWER</span><b><i id="power-meter"></i></b><small id="battery">76</small></div>
+      <div><span>WATER / AIR</span><b><i id="air-meter"></i></b><small id="air">68</small></div>
+      <div><span>FOOD</span><b><i id="shield-meter"></i></b><small id="shield">72</small></div>
+    </div>
+    <div class="telemetry"><span>LINK <b id="signal">NO LINK</b></span><span>SAMPLE <b id="sample">—</b></span><span>REPLY TIME <b id="delay">—</b></span></div>
+    <p class="fine">Supply values are teaching-game units, not engineering specifications. Approximate one-way radio delay: about 1.3 seconds for Moon–Earth and about 3–22 minutes for Mars–Earth, depending on planetary distance. <a href="https://science.nasa.gov/blog/speaking-percys-language-how-to-talk-so-perseverance-will-listen/" target="_blank" rel="noopener">NASA on Mars communications ↗</a></p>
+    <details class="source-drawer"><summary>Sources used in this lesson</summary><p><a href="https://www.nasa.gov/reference/moonbase-environment/" target="_blank" rel="noopener">NASA: Lunar South Pole environment</a><br><a href="https://www.nasa.gov/glenn/glenn-expertise-space-exploration/scan/lunar-surface-propagation/" target="_blank" rel="noopener">NASA: Lunar surface communications</a><br><a href="https://svs.gsfc.nasa.gov/4720/" target="_blank" rel="noopener">NASA SVS: Moon colour and elevation maps (LROC / LOLA)</a><br><a href="https://trek.nasa.gov/mars/" target="_blank" rel="noopener">NASA: Mars Trek terrain tools</a><br><a href="https://www.asc-csa.gc.ca/eng/youth-educators/toolkits/food-production/" target="_blank" rel="noopener">Canadian Space Agency: Food production toolkit</a><br><a href="https://ccmc.gsfc.nasa.gov/tools/DONKI/" target="_blank" rel="noopener">NASA CCMC: DONKI space-weather events</a></p><p>DONKI events describe space-weather observations or model results; they do not directly measure a crew member's dose. Radiation events in this game are clearly labelled practice scenarios.</p></details>
+  </aside>
+
+  <nav id="station-nav" class="station-nav" aria-label="Explore the outpost" hidden><span>EXPLORE THE OUTPOST</span><button data-focus="habitat">⌂ Home</button><button data-focus="garden">♧ Food garden</button><button data-focus="power">☀ Power</button><button data-focus="rover">⚙ Rover</button><button data-focus="lab">⚗ Enter science lab</button><button data-focus="relay">⌁ Message dish</button></nav>
+  <button id="exit-lab" class="exit-lab" type="button" hidden>Leave field lab ↗</button>
+  <div id="inspect" class="inspect" hidden><button id="inspect-close" aria-label="Close station information">×</button><b id="inspect-title"></b><p id="inspect-text"></p></div>
+  <div class="scene-tools"><button id="crew-switch" type="button">Player 1 · Engineer</button><button id="view-mode" type="button" aria-pressed="false" disabled>View: Third-person</button><button id="reset-camera">Reset view ↻</button><label>Quality <select id="quality"><option value="balanced">Balanced</option><option value="low">Low</option><option value="high">High</option></select></label><button id="motion" aria-pressed="false">Motion: on</button></div>
+  <p class="scene-hint" id="hint">Drag to look · Scroll to zoom · Select a destination</p>
+  <div id="drive-pad" class="drive-pad" hidden aria-label="Explorer and rover controls"><button id="vehicle-mode" type="button">Board rover</button><button data-key="ArrowUp" aria-label="Move forward">↑</button><div><button data-key="ArrowLeft" aria-label="Turn left">←</button><button data-key="ArrowDown" aria-label="Move backward">↓</button><button data-key="ArrowRight" aria-label="Turn right">→</button></div><button id="recover">Reset rover</button><span id="distance"></span></div>
+  <div id="loading" class="loading"><span>✳</span><p>Preparing your mission…</p></div>
+  <div id="file-help" class="unavailable" hidden><h2>Start the local server first</h2><p>The 3D game cannot start from a file opened by double-clicking. In VS Code, open this folder, choose <b>Terminal → New Terminal</b>, and run:</p><pre>python -m http.server 8080</pre><p>If that command is not found, try <code>py -m http.server 8080</code>.</p><p>Then open <a href="http://localhost:8080">http://localhost:8080</a> while the terminal stays open.</p></div>
+  <div id="unavailable" class="unavailable" hidden><h2>Your browser couldn’t start the 3D scene.</h2><p>Try a browser with WebGL enabled, or open the site on a device with 3D graphics support.</p><button id="retry-load">Try again</button></div>
+</main>
+<script type="module">
+if (location.protocol === 'file:') {
+  document.getElementById('loading').hidden = true;
+  document.getElementById('file-help').hidden = false;
+} else {
+  import('./trainer.js?v=crew-lab-missions-20261113d').catch(error => {
+    console.error('Mission trainer failed to start:', error);
+    const loading = document.getElementById('loading');
+    loading.querySelector('p').textContent = 'Mission could not start. Error details:';
+    const details = document.createElement('pre');
+    details.textContent = `${error.stack || error.message || String(error)}\nFile: ${error.fileName || 'unknown'} · Line: ${error.lineNumber || '?'} · Column: ${error.columnNumber || '?'}`;
+    loading.append(details);
+    loading.

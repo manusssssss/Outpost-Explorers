@@ -1,0 +1,8 @@
+NASA Langley Research Center concept assets used in this independent educational scene:
+
+Space Exploration Vehicle 3D Resource: https://science.nasa.gov/3d-resources/space-exploration-vehicle/
+Habitat Demonstration Unit 3D Resource (parts 1 and 2): https://science.nasa.gov/3d-resources/habitat-demonstration-unit/
+
+The Space Exploration Vehicle is a research concept, not a vehicle flown on a mission. The Habitat Demonstration Unit is a terrestrial habitat prototype/demonstrator, not an operational lunar or Mars base. Model materials were recoloured in this project to remove visible institutional markings. NASA did not create, approve, or endorse this project.
+
+The Space Exploration Vehicle uses Draco mesh compression. Three.js loads the decoder from Google’s public gstatic CDN (version 1.5.7); the decoder is not bundled with this project.
