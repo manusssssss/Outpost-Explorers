@@ -13,6 +13,7 @@ const chatInput = q('#chat-input');
 const chatSend = q('#chat-send');
 const voiceButton = q('#voice-toggle');
 const voiceEndButton = q('#voice-end');
+const voicePlayButton = q('#voice-play');
 const voiceStatus = q('#voice-status');
 const remoteAudio = q('#remote-audio');
 const encoder = new TextEncoder();
@@ -249,8 +250,9 @@ function prepareVoice() {
     remoteVoiceStream = event.streams[0] || new MediaStream([event.track]);
     remoteAudio.srcObject = remoteVoiceStream;
     remoteAudio.hidden = false;
+    voicePlayButton.disabled = false;
     remoteAudio.play().then(() => { voiceStatus.textContent = 'Voice connected. Use the microphone button to mute or unmute.'; })
-      .catch(() => { voiceStatus.textContent = 'Voice connected. Tap Play to hear your crew mate.'; });
+      .catch(() => { voiceStatus.textContent = 'Firefox or the browser blocked autoplay. Press Play crew audio to hear your crew mate.'; });
   };
   pc.onconnectionstatechange = () => {
     if (pc.connectionState === 'failed') voiceStatus.textContent = 'Voice could not connect on this network. Mission data and text chat are still connected.';
@@ -303,6 +305,7 @@ function closeVoice() {
   offerStarted = false;
   remoteAudio.srcObject = null;
   remoteAudio.hidden = true;
+  voicePlayButton.disabled = true;
   localStream?.getTracks().forEach(track => track.stop());
   localStream = null;
   voiceButton.textContent = 'Enable microphone';
@@ -369,6 +372,18 @@ q('#online-join').addEventListener('click', () => joinInvite(q('#online-code').v
 q('#chat-form').addEventListener('submit', sendChat);
 voiceButton.addEventListener('click', toggleMicrophone);
 voiceEndButton.addEventListener('click', endVoice);
+voicePlayButton.addEventListener('click', async () => {
+  if (!remoteVoiceStream) {
+    voiceStatus.textContent = 'Waiting for the crew mate’s microphone. They must enable their microphone first.';
+    return;
+  }
+  try {
+    await remoteAudio.play();
+    voiceStatus.textContent = 'Crew audio is playing. Use the audio player to adjust volume.';
+  } catch {
+    voiceStatus.textContent = 'Audio playback is still blocked. Check Firefox autoplay and device volume settings.';
+  }
+});
 q('#online-code').addEventListener('keydown', event => { if (event.key === 'Enter') joinInvite(q('#online-code').value); });
 mission.addEventListener('change', () => send({ type: 'mission-selection', selection: selection() }));
 level.addEventListener('change', () => send({ type: 'mission-selection', selection: selection() }));
