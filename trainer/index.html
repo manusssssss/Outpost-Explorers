@@ -69,23 +69,25 @@
   <div id="file-help" class="unavailable" hidden><h2>Start the local server first</h2><p>The 3D game cannot start from a file opened by double-clicking. In VS Code, open this folder, choose <b>Terminal → New Terminal</b>, and run:</p><pre>python -m http.server 8080</pre><p>If that command is not found, try <code>py -m http.server 8080</code>.</p><p>Then open <a href="http://localhost:8080">http://localhost:8080</a> while the terminal stays open.</p></div>
   <div id="unavailable" class="unavailable" hidden><h2>Your browser couldn’t start the 3D scene.</h2><p>Try a browser with WebGL enabled, or open the site on a device with 3D graphics support.</p><button id="retry-load">Try again</button></div>
 </main>
-<script type="module">
+<script>
 if (location.protocol === 'file:') {
   document.getElementById('loading').hidden = true;
   document.getElementById('file-help').hidden = false;
 } else {
-  import('./trainer.js?v=crew-lab-missions-20261113e').catch(error => {
-    console.error('Mission trainer failed to start:', error);
-    const loading = document.getElementById('loading');
-    loading.querySelector('p').textContent = 'Mission could not start. Error details:';
-    const details = document.createElement('pre');
-    details.textContent = `${error.stack || error.message || String(error)}\nFile: ${error.fileName || 'unknown'} · Line: ${error.lineNumber || '?'} · Column: ${error.columnNumber || '?'}`;
-    loading.append(details);
-    loading.classList.add('load-error');
-  });
+  window.addEventListener('error', event => {
+    if (event.target && event.target.tagName === 'SCRIPT') {
+      const loading = document.getElementById('loading');
+      loading.querySelector('p').textContent = 'Mission tools did not load. Check your connection and refresh.';
+    }
+  }, true);
+  setTimeout(() => {
+    if (!document.documentElement.dataset.trainerStarted) {
+      const loading = document.getElementById('loading');
+      loading.querySelector('p').textContent = 'The mission is taking too long to start. Refresh the page or try another browser.';
+      loading.classList.add('load-error');
+    }
+  }, 12000);
 }
 </script>
-</body>
-</html>
-
-
+<script type="module" src="./trainer.js?v=crew-lab-missions-20261113f"></script>
+</body></html>

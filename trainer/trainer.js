@@ -155,7 +155,7 @@ const validKeys=new Set(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a',
  window.addEventListener('keydown',e=>{const k=e.key.length===1?e.key.toLowerCase():e.key;if(((step===3&&!solved)||interiorActive)&&validKeys.has(k)&&!['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)){e.preventDefault();keys.add(k);}});window.addEventListener('keyup',e=>keys.delete(e.key.length===1?e.key.toLowerCase():e.key));window.addEventListener('blur',()=>keys.clear());document.addEventListener('visibilitychange',()=>{keys.clear();last=performance.now();});
 document.querySelectorAll('[data-key]').forEach(b=>{b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);keys.add(b.dataset.key);});for(const event of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(event,()=>keys.delete(b.dataset.key));});
 $('#retry-load').addEventListener('click',()=>location.reload());
-init();
+document.documentElement.dataset.trainerStarted='true'; init();
 
 
 
