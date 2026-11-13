@@ -166,7 +166,7 @@ function makeChandrayaanCraft(kind){
   const rover=new THREE.Group(),deck=new THREE.Mesh(new THREE.BoxGeometry(.48,.18,.4),gold);deck.position.y=.42;rover.add(deck);
   const mast=new THREE.Mesh(new THREE.CylinderGeometry(.035,.04,.38,8),white);mast.position.set(-.12,.7,0);rover.add(mast);
   const cam=new THREE.Mesh(new THREE.BoxGeometry(.18,.13,.16),dark);cam.position.set(-.12,.93,0);rover.add(cam);
-  for(const x of [-1,0,1])for(const z of [-1,1]){const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,.09,12),dark);wheel.rotation.x=Math.PI/2;wheel.position.set(x*.24,.17,z*.28);rover.add(wheel);}
+  for(const x of [-1,0,1])for(const z of [-1,1]){const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,.09,12),dark);wheel.name='rover-wheel';wheel.rotation.x=Math.PI/2;wheel.position.set(x*.24,.17,z*.28);rover.add(wheel);}
   rover.name='rover';rover.position.set(1.12,.02,0);group.add(rover);
  }
  if(kind==='orbiter'){const mip=new THREE.Group(),probe=new THREE.Mesh(new THREE.SphereGeometry(.12,12,8),white);mip.add(probe);const antenna=new THREE.Mesh(new THREE.CylinderGeometry(.015,.015,.28,6),gold);antenna.position.y=.2;mip.add(antenna);mip.name='impact-probe';group.add(mip);}
@@ -196,10 +196,10 @@ function makePerseverance(){
  const head=new THREE.Mesh(new THREE.BoxGeometry(.46,.28,.35),blue);head.position.set(-.28,1.67,0);group.add(head);
  for(let i=0;i<3;i++){const cam=new THREE.Mesh(new THREE.SphereGeometry(.06,10,8),new THREE.MeshStandardMaterial({color:0x182b31,metalness:.6,roughness:.2}));cam.position.set(-.28+(i-1)*.13,1.67,-.2);group.add(cam);}
  const arm=rodBetween([.3,.64,-.32],[.75,.36,-.38],.045,bodymat);group.add(arm);
- for(const x of [-.4,0,.4])for(const z of [-1,1]){const hub=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.12,10),gold);hub.rotation.x=Math.PI/2;hub.position.set(x,.34,z*.46);group.add(hub);const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.17,16),dark);wheel.rotation.x=Math.PI/2;wheel.position.set(x,.34,z*.59);group.add(wheel);for(let k=0;k<8;k++){const lug=new THREE.Mesh(new THREE.BoxGeometry(.04,.04,.19),gold);lug.position.set(x+Math.cos(k*Math.PI/4)*.23,.34+Math.sin(k*Math.PI/4)*.23,z*.59);group.add(lug);}}
+ for(const x of [-.4,0,.4])for(const z of [-1,1]){const hub=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.12,10),gold);hub.rotation.x=Math.PI/2;hub.position.set(x,.34,z*.46);group.add(hub);const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.17,16),dark);wheel.name='rover-wheel';wheel.rotation.x=Math.PI/2;wheel.position.set(x,.34,z*.59);group.add(wheel);for(let k=0;k<8;k++){const lug=new THREE.Mesh(new THREE.BoxGeometry(.04,.04,.19),gold);lug.position.set(x+Math.cos(k*Math.PI/4)*.23,.34+Math.sin(k*Math.PI/4)*.23,z*.59);group.add(lug);}}
  const heli=new THREE.Group(),hull=new THREE.Mesh(new THREE.BoxGeometry(.36,.15,.3),gold);heli.add(hull);
  const mast2=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,.35,8),bodymat);mast2.position.y=.22;heli.add(mast2);
- const blade=new THREE.Mesh(new THREE.BoxGeometry(.9,.025,.055),dark);blade.position.y=.4;heli.add(blade);
+ const blade=new THREE.Mesh(new THREE.BoxGeometry(.9,.025,.055),dark);blade.name='rotor-blade';blade.position.y=.4;heli.add(blade);
  const legmat=new THREE.MeshStandardMaterial({color:0x313632,metalness:.5,roughness:.4});for(const s of [-1,1]){const leg=rodBetween([s*.12,-.04,0],[s*.24,-.22,0],.018,legmat);heli.add(leg);}
  heli.name='ingenuity';heli.position.set(1.55,.38,-.15);group.add(heli);return group;
 }
@@ -320,7 +320,7 @@ export function mountMissionDemo(container,mission,ui){
   approachCraft.visible=!isOrbital&&step<landerVisibleFrom;lander.visible=!isOrbital&&step>=landerVisibleFrom;rover.group.visible=!isOrbital&&step>=touchdownStep&&(/rover/.test(type)||steps.some(x=>/rover/i.test(x[0])));
   sample.visible=/sample/.test(type)&&step>=steps.length-2;
   returnCapsule.visible=isReturn&&step===steps.length-1;
-  satellite.visible=isOrbital||step===steps.length-1;
+  satellite.visible=!flagship&&(isOrbital||step===steps.length-1);
   earthGroup.visible=apollo9;
   if(isOrbital){planetGroup.visible=!apollo9;surface.visible=false;target.visible=false;rover.group.visible=false;lander.visible=false;}
   else{planetGroup.visible=false;surface.visible=true;target.visible=true;}
@@ -329,35 +329,37 @@ export function mountMissionDemo(container,mission,ui){
    const command=flagship.getObjectByName('command'),lm=flagship.getObjectByName('lunar-module'),probe=flagship.getObjectByName('impact-probe');
    if(apollo9){
     planetGroup.visible=false;earthGroup.visible=true;surface.visible=false;target.visible=false;
-    if(command)command.position.set(step===1?-.48:-.25,.15,.15);
-    if(lm){lm.visible=step>0;lm.position.set(step===1?.55:step===2?.28:.16,step===1?-.18:step===2?.1:.05,step===1?.05:step===2?.1:0);}
+    if(command)command.position.set(step===1?-2.45:-2.25,.25,.12);
+    if(lm){lm.visible=step>0;lm.position.set(step===1?-3.25:step===2?-2.9:-2.7,step===1?.15:step===2?.35:.25,step===1?.15:step===2?.25:.1);}
    }else if(apollo10){
     planetGroup.visible=true;surface.visible=false;target.visible=false;
-    if(command)command.position.set(step>=2?.95:.35,.62,.12);
-    if(lm){lm.visible=step>=1;lm.position.set(step===1?-.35:step===2?.1:.65,step===2?-.18:.38,step===2?.15:0);}
+    if(command)command.position.set(step>=2?2.55:2.25,.48,.2);
+    if(lm){lm.visible=step>=1;lm.position.set(step===1?-.9:step===2?-.75:-.55,step===2?1.72:1.95,step===2?.2:.1);}
    }else if(apollo11){
     planetGroup.visible=false;surface.visible=true;target.visible=true;
-    if(command)command.position.set(step>=2?1.65:.8,step===2?1.15:.85,-1.1);
-    if(lm){lm.visible=step>=1&&step<3;lm.position.set(step===1?.1:step===2?.45:.25,step===1?1.1:-1.43,-.15);}
+    if(command)command.position.set(step>=2?2.45:2.15,step===2?1.15:.8,-1.1);
+    if(lm){lm.visible=step>=1&&step<3;lm.position.set(step===1?.1:step===2?.45:.25,step===1?1.1:-1.2,-.15);}
    }else if(name==='chandrayaan-1'){
     planetGroup.visible=true;surface.visible=false;target.visible=false;
-    if(probe){probe.visible=step>=2;probe.position.set(.8,step===2?-.1:-1.15,0);}
+    flagship.position.set(2.45,.45,0);if(probe){probe.visible=step>=2;probe.position.set(.6,step===2?-.55:-1.1,0);}
    }else if(chandrayaan2){
     planetGroup.visible=false;surface.visible=true;target.visible=true;
-    const c2land=flagship.getObjectByName('lander'),orb=flagship.getObjectByName('orbiter');if(orb){orb.position.set(-2.3,.9,-.2);orb.visible=true;}if(c2land){c2land.position.set(step<2?-.2:step===2?.55:1.45,step<2?1.8:step===2?.05:.8,.05);c2land.visible=true;}
+    const c2land=flagship.getObjectByName('lander'),orb=flagship.getObjectByName('orbiter');if(orb){orb.position.set(-2.3,.9,-.2);orb.visible=true;}if(c2land){c2land.position.set(step<2?-.2:step===2?.55:1.45,step<2?1.8:step===2?.45:1.5,.05);c2land.visible=true;}
    }else if(chandrayaan3){
     planetGroup.visible=false;surface.visible=true;target.visible=true;
     const c3land=flagship.getObjectByName('lander'),c3rover=flagship.getObjectByName('rover');if(c3land){c3land.position.set(-.45,step<2?1.8:-1.43,-.1);c3land.visible=step<3;}if(c3rover){c3rover.visible=step>=3;c3rover.position.x=step===3?.55:1.35;}
    }else if(apollo9||apollo10||apollo11){
     /* Positioning is handled in the mission specific branches above. */
    }else if(name==='luna 1'){
-    planetGroup.visible=true;surface.visible=false;target.visible=false;flagship.position.set(step<2?-.5:2.8,.65,.15);
+    planetGroup.visible=true;surface.visible=false;target.visible=false;flagship.position.set(step<2?2.35:3.3,.7,.15);
    }else if(artemis){
     planetGroup.visible=true;surface.visible=false;target.visible=false;flagship.position.set(.2,.55,2.5);
    }else if(name==='perseverance / ingenuity'){
     planetGroup.visible=false;surface.visible=true;target.visible=true;flagship.position.set(-1.35,-1.43,.1);
+   }else if(isOrbital){
+    flagship.position.set(2.45,.7,.15);
    }else{
-    flagship.position.set(2.25,.35,0);
+    flagship.position.set(2.1,-1.43,.15);
    }
   }
  }
@@ -366,7 +368,7 @@ export function mountMissionDemo(container,mission,ui){
  ui.previous.addEventListener('click',previous);ui.next.addEventListener('click',next);showStep();resize();
  const animate=()=>{
   if(disposed)return;frame=requestAnimationFrame(animate);const t=performance.now()*.001;
-  planetGroup.rotation.y=t*.065;earthGroup.rotation.y=t*.045;if(flagship){flagship.rotation.y=(apollo9||apollo10||artemis?0.12:0.03)+Math.sin(t*.35)*.025;const ing=flagship.getObjectByName('ingenuity');if(ing){const blade=ing.children.find(o=>o.geometry?.type==='BoxGeometry'&&o.scale.x===1);if(blade)blade.rotation.y=t*9;}}
+  planetGroup.rotation.y=t*.065;earthGroup.rotation.y=t*.045;if(flagship){flagship.rotation.y=(apollo9||apollo10||artemis?0.12:0.03)+Math.sin(t*.35)*.025;if(name==='perseverance / ingenuity'){flagship.position.x=-1.35+(step/(steps.length-1))*2.1;flagship.traverse(o=>{if(o.name==='rover-wheel')o.rotation.z=-t*1.8;});const ing=flagship.getObjectByName('ingenuity');if(ing){const blade=ing.getObjectByName('rotor-blade');if(blade)blade.rotation.y=t*12;ing.position.y=.38+(step>=2?Math.sin(t*4)*.18:0);}}if(chandrayaan3){const r=flagship.getObjectByName('rover');if(r)r.traverse(o=>{if(o.name==='rover-wheel')o.rotation.z=-t*1.2;});}}
   satellite.position.set(Math.cos(t*.34)*2.12,Math.sin(t*.34)*.78,Math.sin(t*.34)*1.35);
   satellite.rotation.y=-t*.34;
   if(!isOrbital){
