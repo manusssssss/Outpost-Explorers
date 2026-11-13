@@ -248,7 +248,7 @@ window.OutpostMultiplayer = {
   role: () => role === 'host' ? 1 : role === 'guest' ? 2 : 0,
   connected,
   sendState: state => send({ type: 'trainer-state', state }),
-  sendCommand: message => send(message)
+  sendCommand: message => send({ type: 'trainer-command', ...message })
 };
 const incoming = new URLSearchParams(location.search);
 if (incoming.get('room') && incoming.get('transport') === 'room-relay') joinInvite(location.href);
