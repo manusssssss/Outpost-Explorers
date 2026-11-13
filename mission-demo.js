@@ -290,10 +290,10 @@ export function mountMissionDemo(container,mission,ui){
  let seed=randomSeed>>>0;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
  const rockMat=new THREE.MeshStandardMaterial({color:mission.world==='Mars'?0x80503e:0x727a76,roughness:1});
  for(let i=0;i<26;i++){
-  const size=.07+rand()*.24,rock=new THREE.Mesh(new THREE.DodecahedronGeometry(size,0),rockMat);rock.castShadow=true;rock.receiveShadow=true;
+  const size=.07+rand()*.24,rock=new THREE.Mesh(new THREE.DodecahedronGeometry(size,0),rockMat);rock.castShadow=true;rock.receiveShadow=true;rock.visible=!isSpaceScene;
   rock.position.set((rand()-.5)*10,-1.36+size*.45,(rand()-.5)*6-1.3);rock.rotation.set(rand()*2,rand()*2,rand()*2);scene.add(rock);
  }
- for(let i=0;i<7;i++){const ridge=new THREE.Mesh(new THREE.DodecahedronGeometry(.9+rand()*.5,0),rockMat);ridge.scale.set(1.25,.65,.75);ridge.position.set(-7+i*2.3,-1.23,-6.15);ridge.rotation.y=rand()*2;ridge.castShadow=true;ridge.receiveShadow=true;scene.add(ridge);}
+ for(let i=0;i<7;i++){const ridge=new THREE.Mesh(new THREE.DodecahedronGeometry(.9+rand()*.5,0),rockMat);ridge.scale.set(1.25,.65,.75);ridge.position.set(-7+i*2.3,-1.23,-6.15);ridge.rotation.y=rand()*2;ridge.castShadow=true;ridge.receiveShadow=true;ridge.visible=!isSpaceScene;scene.add(ridge);}
  const target=new THREE.Group();target.position.set(2.3,-1.38,-.1);scene.add(target);
  const beacon=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.48,8),new THREE.MeshStandardMaterial({color:0xc7dc9b,emissive:0x466b37,emissiveIntensity:1.1}));beacon.position.y=.24;target.add(beacon);
  const halo=new THREE.Mesh(new THREE.TorusGeometry(.36,.028,8,32),new THREE.MeshBasicMaterial({color:0xdde9a5}));halo.rotation.x=Math.PI/2;halo.position.y=.03;target.add(halo);
@@ -313,9 +313,9 @@ export function mountMissionDemo(container,mission,ui){
  const moonEarth=new THREE.Mesh(new THREE.SphereGeometry(.28,24,18),new THREE.MeshStandardMaterial({color:0x4b88a2,roughness:.75,emissive:0x123044,emissiveIntensity:.25}));moonEarth.position.set(-3.5,2.3,-4.6);moonEarth.visible=mission.world==='Moon'&&!apollo9;scene.add(moonEarth);
  const earthGroup=new THREE.Group(),earthSurface=new THREE.Mesh(new THREE.SphereGeometry(1.78,48,32),new THREE.MeshStandardMaterial({color:0x235b83,roughness:.9,metalness:0,emissive:0x071522,emissiveIntensity:.18}));earthGroup.add(earthSurface);
  const landMat=new THREE.MeshStandardMaterial({color:0x54795a,roughness:1});
- for(const [x,y,z,sx,sy,sz] of [[-.7,.45,.9,.48,.28,.12],[.25,.73,.85,.33,.18,.12],[.9,.16,.48,.22,.42,.12],[-.45,-.42,.89,.38,.3,.12]]){const land=new THREE.Mesh(new THREE.SphereGeometry(.55,14,10),landMat);land.scale.set(sx,sy,sz);land.position.set(x,y,z);earthGroup.add(land);}
+ for(const [x,y,z,sx,sy,sz] of [[-.7,.45,.9,.44,.24,.09],[.25,.73,.85,.31,.18,.085],[.9,.16,.48,.2,.38,.085],[-.45,-.42,.89,.36,.28,.085]]){const normal=new THREE.Vector3(x,y,z).normalize();const land=new THREE.Mesh(new THREE.SphereGeometry(.55,16,12),landMat);land.scale.set(sx,sy,sz);land.position.copy(normal).multiplyScalar(1.785);land.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),normal);earthGroup.add(land);}
  const clouds=new THREE.Mesh(new THREE.SphereGeometry(1.81,36,24),new THREE.MeshStandardMaterial({color:0xf0f2eb,transparent:true,opacity:.14,roughness:1}));earthGroup.add(clouds);earthGroup.visible=apollo9;scene.add(earthGroup);
- const flagship=makeFlagship(mission);if(flagship){flagship.scale.setScalar(apollo9||apollo10||apollo11||artemis?1.65:1.25);scene.add(flagship);}
+ const flagship=makeFlagship(mission);if(flagship){flagship.scale.setScalar(apollo9||apollo10||apollo11||artemis?1.9:1.35);scene.add(flagship);}
 
 
  const resize=()=>{const w=container.clientWidth,h=container.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();};
@@ -397,7 +397,7 @@ export function mountMissionDemo(container,mission,ui){
    if(approachCraft.visible){approachCraft.position.set(-2.1+Math.sin(t*.6)*.14,1.25+Math.sin(t*1.4)*.08,.8);approachCraft.rotation.y=t*.12;}
   }
   if(returnCapsule.visible)returnCapsule.position.set(.4,-.9+Math.sin(t*1.6)*.65,-.4);
-  const yaw=.464+rotY,distance=(flagship?10.5:13.5)/zoom;camera.position.set(distance*Math.sin(yaw),3.3+rotX*3,distance*Math.cos(yaw));camera.lookAt(0,-.05,0);
+  const yaw=.464+rotY,distance=(flagship?9.8:13.5)/zoom;camera.position.set(distance*Math.sin(yaw),3.3+rotX*3,distance*Math.cos(yaw));camera.lookAt(0,-.05,0);
   renderer.render(scene,camera);
  };
  animate();
