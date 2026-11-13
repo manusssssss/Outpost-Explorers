@@ -255,7 +255,7 @@ function makeLander(){
 
 export function mountMissionDemo(container,mission,ui){
  const steps=missionSteps(mission);let step=0,frame=0,disposed=false,dragging=false,lastX=0,lastY=0,rotX=0,rotY=0,zoom=1;
- const type=mission.type.toLowerCase(),isOrbital=/orbiter|flyby|orbit/.test(type),isReturn=/sample return/.test(type);
+ const type=mission.type.toLowerCase(),name=mission.name.toLowerCase(),apollo9=name==='apollo 9',apollo10=name==='apollo 10',apollo11=name==='apollo 11',chandrayaan2=name==='chandrayaan-2',chandrayaan3=name==='chandrayaan-3',artemis=/^artemis [i|ii]+$/.test(name),isOrbital=(/orbiter|flyby|orbit/.test(type)||apollo9||apollo10||artemis)&&!chandrayaan2&&!chandrayaan3,isReturn=/sample return/.test(type);
  container.innerHTML='<canvas class="mission-demo-canvas" aria-label="Interactive three-dimensional illustration of '+mission.name.replace(/[&<>"']/g,'')+'"></canvas><div class="mission-demo-hint">DRAG TO ROTATE · SCROLL TO ZOOM</div>';
  const canvas=container.querySelector('canvas'),renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'low-power'});
  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.setSize(container.clientWidth,container.clientHeight,false);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -295,6 +295,12 @@ export function mountMissionDemo(container,mission,ui){
  const capsuleBody=new THREE.Mesh(new THREE.ConeGeometry(.24,.62,8),new THREE.MeshStandardMaterial({color:0xdadbd0,metalness:.25,roughness:.4}));capsuleBody.rotation.z=Math.PI;returnCapsule.add(capsuleBody);
  const capsuleBase=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.11,12),new THREE.MeshStandardMaterial({color:0xc36a43,metalness:.2,roughness:.52}));capsuleBase.position.y=-.3;returnCapsule.add(capsuleBase);scene.add(returnCapsule);
  const moonEarth=new THREE.Mesh(new THREE.SphereGeometry(.28,24,18),new THREE.MeshStandardMaterial({color:0x4b88a2,roughness:.75,emissive:0x123044,emissiveIntensity:.25}));moonEarth.position.set(-3.5,2.3,-4.6);moonEarth.visible=mission.world==='Moon';scene.add(moonEarth);
+ const earthGroup=new THREE.Group(),earthSurface=new THREE.Mesh(new THREE.SphereGeometry(1.78,48,32),new THREE.MeshStandardMaterial({color:0x235b83,roughness:.9,metalness:0,emissive:0x071522,emissiveIntensity:.18}));earthGroup.add(earthSurface);
+ const landMat=new THREE.MeshStandardMaterial({color:0x54795a,roughness:1});
+ for(const [x,y,z,sx,sy,sz] of [[-.7,.45,.9,.48,.28,.12],[.25,.73,.85,.33,.18,.12],[.9,.16,.48,.22,.42,.12],[-.45,-.42,.89,.38,.3,.12]]){const land=new THREE.Mesh(new THREE.SphereGeometry(.55,14,10),landMat);land.scale.set(sx,sy,sz);land.position.set(x,y,z);earthGroup.add(land);}
+ const clouds=new THREE.Mesh(new THREE.SphereGeometry(1.81,36,24),new THREE.MeshStandardMaterial({color:0xf0f2eb,transparent:true,opacity:.14,roughness:1}));earthGroup.add(clouds);earthGroup.visible=apollo9;scene.add(earthGroup);
+ const flagship=makeFlagship(mission);if(flagship){flagship.scale.setScalar(apollo9||apollo10||apollo11||artemis?1.65:1.25);scene.add(flagship);}
+
 
  const resize=()=>{const w=container.clientWidth,h=container.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();};
  const onDown=e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture?.(e.pointerId);};
@@ -315,15 +321,52 @@ export function mountMissionDemo(container,mission,ui){
   sample.visible=/sample/.test(type)&&step>=steps.length-2;
   returnCapsule.visible=isReturn&&step===steps.length-1;
   satellite.visible=isOrbital||step===steps.length-1;
-  if(isOrbital){planetGroup.visible=true;surface.visible=false;target.visible=false;rover.group.visible=false;lander.visible=false;}
+  earthGroup.visible=apollo9;
+  if(isOrbital){planetGroup.visible=!apollo9;surface.visible=false;target.visible=false;rover.group.visible=false;lander.visible=false;}
   else{planetGroup.visible=false;surface.visible=true;target.visible=true;}
+  if(flagship){
+   flagship.visible=true;approachCraft.visible=false;lander.visible=false;rover.group.visible=false;returnCapsule.visible=false;sample.visible=false;
+   const command=flagship.getObjectByName('command'),lm=flagship.getObjectByName('lunar-module'),probe=flagship.getObjectByName('impact-probe');
+   if(apollo9){
+    planetGroup.visible=false;earthGroup.visible=true;surface.visible=false;target.visible=false;
+    if(command)command.position.set(step===1?-.48:-.25,.15,.15);
+    if(lm){lm.visible=step>0;lm.position.set(step===1?.55:step===2?.28:.16,step===1?-.18:step===2?.1:.05,step===1?.05:step===2?.1:0);}
+   }else if(apollo10){
+    planetGroup.visible=true;surface.visible=false;target.visible=false;
+    if(command)command.position.set(step>=2?.95:.35,.62,.12);
+    if(lm){lm.visible=step>=1;lm.position.set(step===1?-.35:step===2?.1:.65,step===2?-.18:.38,step===2?.15:0);}
+   }else if(apollo11){
+    planetGroup.visible=false;surface.visible=true;target.visible=true;
+    if(command)command.position.set(step>=2?1.65:.8,step===2?1.15:.85,-1.1);
+    if(lm){lm.visible=step>=1&&step<3;lm.position.set(step===1?.1:step===2?.45:.25,step===1?1.1:-1.43,-.15);}
+   }else if(name==='chandrayaan-1'){
+    planetGroup.visible=true;surface.visible=false;target.visible=false;
+    if(probe){probe.visible=step>=2;probe.position.set(.8,step===2?-.1:-1.15,0);}
+   }else if(chandrayaan2){
+    planetGroup.visible=false;surface.visible=true;target.visible=true;
+    const c2land=flagship.getObjectByName('lander'),orb=flagship.getObjectByName('orbiter');if(orb){orb.position.set(-2.3,.9,-.2);orb.visible=true;}if(c2land){c2land.position.set(step<2?-.2:step===2?.55:1.45,step<2?1.8:step===2?.05:.8,.05);c2land.visible=true;}
+   }else if(chandrayaan3){
+    planetGroup.visible=false;surface.visible=true;target.visible=true;
+    const c3land=flagship.getObjectByName('lander'),c3rover=flagship.getObjectByName('rover');if(c3land){c3land.position.set(-.45,step<2?1.8:-1.43,-.1);c3land.visible=step<3;}if(c3rover){c3rover.visible=step>=3;c3rover.position.x=step===3?.55:1.35;}
+   }else if(apollo9||apollo10||apollo11){
+    /* Positioning is handled in the mission specific branches above. */
+   }else if(name==='luna 1'){
+    planetGroup.visible=true;surface.visible=false;target.visible=false;flagship.position.set(step<2?-.5:2.8,.65,.15);
+   }else if(artemis){
+    planetGroup.visible=true;surface.visible=false;target.visible=false;flagship.position.set(.2,.55,2.5);
+   }else if(name==='perseverance / ingenuity'){
+    planetGroup.visible=false;surface.visible=true;target.visible=true;flagship.position.set(-1.35,-1.43,.1);
+   }else{
+    flagship.position.set(2.25,.35,0);
+   }
+  }
  }
  const previous=()=>{step=Math.max(0,step-1);showStep();};
  const next=()=>{step=step===steps.length-1?0:step+1;showStep();};
  ui.previous.addEventListener('click',previous);ui.next.addEventListener('click',next);showStep();resize();
  const animate=()=>{
   if(disposed)return;frame=requestAnimationFrame(animate);const t=performance.now()*.001;
-  planetGroup.rotation.y=t*.065;
+  planetGroup.rotation.y=t*.065;earthGroup.rotation.y=t*.045;if(flagship){flagship.rotation.y=(apollo9||apollo10||artemis?0.12:0.03)+Math.sin(t*.35)*.025;const ing=flagship.getObjectByName('ingenuity');if(ing){const blade=ing.children.find(o=>o.geometry?.type==='BoxGeometry'&&o.scale.x===1);if(blade)blade.rotation.y=t*9;}}
   satellite.position.set(Math.cos(t*.34)*2.12,Math.sin(t*.34)*.78,Math.sin(t*.34)*1.35);
   satellite.rotation.y=-t*.34;
   if(!isOrbital){
@@ -334,7 +377,7 @@ export function mountMissionDemo(container,mission,ui){
    if(approachCraft.visible){approachCraft.position.set(-2.1+Math.sin(t*.6)*.14,1.25+Math.sin(t*1.4)*.08,.8);approachCraft.rotation.y=t*.12;}
   }
   if(returnCapsule.visible)returnCapsule.position.set(.4,-.9+Math.sin(t*1.6)*.65,-.4);
-  const yaw=.464+rotY,distance=13.5/zoom;camera.position.set(distance*Math.sin(yaw),3.3+rotX*3,distance*Math.cos(yaw));camera.lookAt(0,-.05,0);
+  const yaw=.464+rotY,distance=(flagship?10.5:13.5)/zoom;camera.position.set(distance*Math.sin(yaw),3.3+rotX*3,distance*Math.cos(yaw));camera.lookAt(0,-.05,0);
   renderer.render(scene,camera);
  };
  animate();
