@@ -93,3 +93,22 @@ h1,h2,.destinations b,.inspect b{font-family:var(--trainer-font)}
 .crew-comms audio{display:block;width:100%;height:38px;margin-top:8px}
 @media(max-width:600px){.online-toggle{top:78px;right:12px;padding:9px 11px;font-size:10px}.online-panel{top:124px;right:12px;max-height:calc(100% - 140px);padding:15px}.online-panel-heading h2{font-size:19px}}
 
+
+/* Sliding mission guidance and compact supply status. */
+.mission-panel{z-index:7;transform:translateX(calc(-100% - 36px));visibility:hidden;pointer-events:none;transition:transform .28s cubic-bezier(.2,.75,.25,1),visibility .28s;will-change:transform}
+.mission-panel.open{transform:translateX(0);visibility:visible;pointer-events:auto}
+.mission-panel .chapter-actions{display:flex;align-items:center;gap:8px}
+.mission-panel .chapter-actions #mission-close{font-size:23px;line-height:1;padding:2px 7px;border:1px solid #ffffff28;border-radius:7px;background:#132a34}
+.mission-toggle{position:absolute;z-index:8;left:12px;top:50%;min-width:102px;min-height:42px;border:1px solid #dbe9b188;border-radius:9px;background:#17333eef;color:var(--lime);padding:10px 12px;font-size:10px;font-weight:700;letter-spacing:.8px;box-shadow:0 8px 22px #0008;transform:translateY(-50%);text-align:center}
+.expedition.panel-open .mission-toggle{opacity:0;pointer-events:none}
+.supply-hud{position:absolute;z-index:5;right:22px;top:145px;width:190px;padding:10px 13px;background:#10232de8;border:1px solid #ffffff24;border-radius:11px;backdrop-filter:blur(14px);box-shadow:0 10px 28px #0004}
+.supply-title{font-size:8px;letter-spacing:1.5px;color:#aebfc1;font-weight:700}
+.supply-hud .resource-board{gap:6px;margin-top:7px;padding:0;border:0}
+.supply-hud .resource-board>div{grid-template-columns:46px 1fr 34px;gap:6px}
+.supply-hud .resource-board span{font-size:7px}
+.supply-hud .resource-board b{height:5px}
+.supply-hud .resource-board small{font-size:8px}
+.station-nav{top:235px}
+canvas.look-enabled{cursor:crosshair;touch-action:none}
+@media(max-width:850px){.mission-panel{left:14px;top:auto;bottom:74px;width:310px;max-height:47%;padding:16px}.supply-hud{right:12px;top:158px;width:156px;padding:8px 10px}.station-nav{top:260px;right:12px}.mission-toggle{top:44%}}
+@media(max-width:540px){.mission-panel{width:calc(100% - 28px);max-height:38%;bottom:74px}.mission-panel.driving{width:calc(100% - 135px);max-height:38%}.supply-hud{top:158px;right:10px;width:139px;padding:7px 8px}.supply-hud .resource-board>div{grid-template-columns:40px 1fr 30px}.supply-hud .resource-board span{font-size:6px}.station-nav{top:82px}.mission-toggle{top:48%;left:0;min-width:96px}}
