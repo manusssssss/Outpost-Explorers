@@ -1,0 +1,15 @@
+name = "outpost-room-relay"
+main = "src/index.js"
+compatibility_date = "2026-11-13"
+
+[vars]
+ALLOWED_ORIGIN = "https://manusssssss.github.io"
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Room"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Room"]
+
