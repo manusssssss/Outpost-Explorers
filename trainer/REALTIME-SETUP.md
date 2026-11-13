@@ -1,27 +1,23 @@
-# Turn on online crew relay
+# Online crew relay setup
 
-The trainer supports direct PeerJS invites and an optional Supabase Realtime broadcast relay. The relay is the route to try when two players on different networks remain stuck on “Connecting to host.” GitHub Pages cannot run the relay server itself; Supabase provides the WebSocket service.
+The trainer uses a Cloudflare Worker with a SQLite-backed Durable Object to relay two-player mission state, actions, chat, and WebRTC voice signaling. The Worker is already deployed for the Outpost Explorers site.
 
-## Configure the public browser client
+The browser URL is configured in `room-config.js` as `websocketUrl`. If the Worker is redeployed at a different address, update that value and publish the trainer site again. The Worker accepts requests from `https://manusssssss.github.io` and supports two players per invite room.
 
-1. Create a Supabase project at https://supabase.com/dashboard (the free tier is enough for a small trial).
-2. In **Project Settings → API**, copy the **Project URL** and the **publishable key** (or legacy `anon` public key). These values are intended to be visible in a browser app.
-3. Edit `trainer/realtime-config.js` and set:
+## Deploy or update the Worker
 
-   ```js
-   window.OUTPOST_REALTIME_CONFIG = {
-     url: 'https://YOUR-PROJECT.supabase.co',
-     publishableKey: 'YOUR-PUBLISHABLE-KEY'
-   };
-   ```
+From this folder, open a terminal in `realtime-room-worker` and run:
 
-4. Deploy that file with the trainer. Reload both players’ pages. Player 1 chooses **Create invite link**; Player 2 opens the link. Both keep the page open. When connected, either player can ask to start; the host starts both copies of the mission.
+```powershell
+npx.cmd wrangler login --device --scopes account:read user:read workers:write workers_scripts:write
+npx.cmd wrangler deploy
+```
 
-Never put a Supabase `secret` or `service_role` key in this file or in GitHub. Do not send one in chat. The client uses public broadcast rooms addressed by a random invitation ID; anyone who obtains the invite URL may join that room, so share it only with the intended partner. The host accepts one remote player.
+Wrangler prints the `workers.dev` URL after deployment. Keep the URL in `trainer/room-config.js` in sync with it. Never commit Cloudflare API tokens or account secrets.
 
-## Current relay limits
+## Limits
 
-- Text chat and mission/position/action messages use the relay.
-- Voice chat is disabled in relay mode; it still needs a separate media service.
-- This is an educational two-player prototype, not a production anti-cheat or secure private lobby.
-- Without the project URL and public key, the page falls back to direct PeerJS WebRTC. Direct peer connections may fail on restrictive school/work/mobile networks or symmetric NAT; TURN relaying is required for those cases. See https://peerjs.com/client/faq and https://supabase.com/docs/guides/realtime/broadcast.
+- Invite URLs contain a random room code; share each invite only with the intended player.
+- Mission state, positions/actions, and text chat use the relay.
+- Voice audio uses browser WebRTC and public STUN; restrictive networks may still block voice even when game state works.
+- This is an educational two-player prototype, not a production-secure lobby or anti-cheat system.
