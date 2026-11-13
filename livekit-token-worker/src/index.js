@@ -47,7 +47,8 @@ export default {
           canPublish: true,
           canPublishData: true,
           canSubscribe: true
-        }
+        },
+        roomConfig: { maxParticipants: 2 }
       }, env.LIVEKIT_API_SECRET);
       return json({ token, identity }, 200, allowedOrigin);
     } catch {
