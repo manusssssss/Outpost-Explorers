@@ -20,7 +20,7 @@
   <button id="online-toggle" class="online-toggle" type="button" aria-expanded="false" aria-controls="online-panel">Connect crew</button>
   <aside id="online-panel" class="online-panel" aria-label="Online crew connection" hidden>
     <div class="online-panel-heading"><div><p class="eyebrow">ONLINE CREW</p><h2>Invite a crew mate</h2></div><button id="online-close" class="online-close" type="button" aria-label="Close online crew panel">×</button></div>
-    <p class="online-intro">Create a private invite link for one crew mate. Keep this page open until they join. If connecting stalls, retry; some school, work, or mobile networks block direct browser links.</p>
+    <p class="online-intro">Create a private invite link for one crew mate. Keep this page open until they join. Connect through LiveKit Cloud. Share the room invite with one crew mate and keep both trainer pages open.</p>
     <label class="online-label" for="online-mission">Choose the mission</label>
     <select id="online-mission">
       <option value="Moon|shackleton">Moon · Shackleton Rim Link</option>
@@ -60,7 +60,7 @@
       <button id="online-join" class="online-secondary" type="button">Join session</button>
     </div>
     <p id="online-status" class="online-status" role="status" aria-live="polite">Not connected yet</p>
-    <p class="online-footnote">A direct invite connects two browsers and shares the mission selection. Player movement and mission progress still run separately on each device.</p>
+    <p class="online-footnote">LiveKit Cloud carries voice, crew messages, mission choices, and astronaut/rover movement between both devices.</p>
   </aside>
 
   <section class="welcome" id="welcome">
@@ -133,9 +133,9 @@ if (location.protocol === 'file:') {
   }, 12000);
 }
 </script>
-<script src="./realtime-config.js?v=relay-config-20261113b"></script>
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js" crossorigin="anonymous"></script>
+<script src="./livekit-config.js?v=livekit-setup-20261113a"></script>
+<script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js" crossorigin="anonymous"></script>
 <script type="module" src="./trainer.js?v=mobile-joysticks-20261113a"></script>
-<script type="module" src="./online-coop.js?v=invite-lobby-20261113e"></script>
+<script type="module" src="./online-coop.js?v=livekit-coop-20261113a"></script>
 </body></html>
 
