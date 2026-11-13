@@ -181,6 +181,15 @@ function makeOrionVehicle(){
  const window=new THREE.Mesh(new THREE.SphereGeometry(.13,12,8),blue);window.scale.set(1,.75,.3);window.position.set(0,.5,-.4);group.add(window);
  return group;
 }
+function makeLunaNine(){
+ const group=new THREE.Group(),shell=new THREE.MeshStandardMaterial({color:0xd6d3c5,metalness:.28,roughness:.58}),dark=new THREE.MeshStandardMaterial({color:0x253a3d,metalness:.48,roughness:.34}),gold=new THREE.MeshStandardMaterial({color:0xb99058,metalness:.5,roughness:.42});
+ const pressureSphere=new THREE.Mesh(new THREE.SphereGeometry(.36,20,16),shell);pressureSphere.position.y=.25;group.add(pressureSphere);
+ const instrumentDeck=new THREE.Mesh(new THREE.CylinderGeometry(.3,.32,.16,12),gold);instrumentDeck.position.y=.58;group.add(instrumentDeck);
+ for(let i=0;i<4;i++){const a=i*Math.PI/2,antenna=new THREE.Mesh(new THREE.CylinderGeometry(.018,.025,.6,8),gold);antenna.position.set(Math.cos(a)*.25,.9,Math.sin(a)*.25);antenna.rotation.z=-Math.cos(a)*.45;antenna.rotation.x=Math.sin(a)*.45;group.add(antenna);}
+ for(let i=0;i<4;i++){const a=i*Math.PI/2,petal=new THREE.Mesh(new THREE.BoxGeometry(.34,.06,.42),shell);petal.position.set(Math.cos(a)*.3,.08,Math.sin(a)*.3);petal.rotation.y=a;group.add(petal);}
+ const camera=new THREE.Mesh(new THREE.CylinderGeometry(.08,.12,.17,10),dark);camera.position.y=.72;group.add(camera);
+ return group;
+}
 function makeLunaOne(){
  const group=new THREE.Group(),metal=new THREE.MeshStandardMaterial({color:0xbfc0b6,metalness:.58,roughness:.4}),gold=new THREE.MeshStandardMaterial({color:0xd2a65c,metalness:.5,roughness:.42});
  const core=new THREE.Mesh(new THREE.SphereGeometry(.36,20,16),metal);group.add(core);
@@ -207,6 +216,7 @@ function makeFlagship(mission){
  if(!mission.featured)return null;
  const n=mission.name.toLowerCase();
  if(n==='apollo 9'||n==='apollo 10'||n==='apollo 11')return makeApolloVehicle();
+ if(n==='luna 9')return makeLunaNine();
  if(n==='chandrayaan-1')return makeChandrayaanCraft('orbiter');
  if(n==='chandrayaan-2')return makeChandrayaanCraft('lander');
  if(n==='chandrayaan-3')return makeChandrayaanCraft('rover');
@@ -350,6 +360,8 @@ export function mountMissionDemo(container,mission,ui){
     const c3land=flagship.getObjectByName('lander'),c3rover=flagship.getObjectByName('rover');if(c3land){c3land.position.set(-.45,step<2?1.8:-1.43,-.1);c3land.visible=step<3;}if(c3rover){c3rover.visible=step>=3;c3rover.position.x=step===3?.55:1.35;}
    }else if(apollo9||apollo10||apollo11){
     /* Positioning is handled in the mission specific branches above. */
+   }else if(name==='luna 9'){
+    planetGroup.visible=false;surface.visible=true;target.visible=true;flagship.position.set(step<2?0:0,-1.43,0);
    }else if(name==='luna 1'){
     planetGroup.visible=true;surface.visible=false;target.visible=false;flagship.position.set(step<2?2.35:3.3,.7,.15);
    }else if(artemis){
