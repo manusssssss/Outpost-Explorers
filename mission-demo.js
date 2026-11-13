@@ -83,6 +83,12 @@ function missionSteps(m){
   ['Deep-space systems test','The crew checked spacecraft and life-support systems during the flight.'],
   ['Return to Earth','Orion splashed down on 10 April 2026 after the crewed lunar flyby.']
  ];
+ if(n==='luna 9')return [
+  ['Launch from Earth','Luna 9 launched on 31 January 1966 toward the Moon.'],
+  ['Brake for the surface','A retro-rocket slowed the landing capsule and airbags cushioned touchdown.'],
+  ['First successful soft landing','The capsule landed on 3 February 1966 and survived on the lunar surface.'],
+  ['Unfold and photograph','Protective petals opened and panoramic television images were transmitted to Earth.']
+ ];
  if(n==='luna 1')return [
   ['Launch from Earth','The Soviet probe launched on 02 January 1959 on a trajectory intended to reach the Moon.'],
   ['Miss the impact target','A guidance error left Luna 1 on a path that missed the Moon.'],
@@ -304,7 +310,7 @@ export function mountMissionDemo(container,mission,ui){
  const returnCapsule=new THREE.Group();
  const capsuleBody=new THREE.Mesh(new THREE.ConeGeometry(.24,.62,8),new THREE.MeshStandardMaterial({color:0xdadbd0,metalness:.25,roughness:.4}));capsuleBody.rotation.z=Math.PI;returnCapsule.add(capsuleBody);
  const capsuleBase=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.11,12),new THREE.MeshStandardMaterial({color:0xc36a43,metalness:.2,roughness:.52}));capsuleBase.position.y=-.3;returnCapsule.add(capsuleBase);scene.add(returnCapsule);
- const moonEarth=new THREE.Mesh(new THREE.SphereGeometry(.28,24,18),new THREE.MeshStandardMaterial({color:0x4b88a2,roughness:.75,emissive:0x123044,emissiveIntensity:.25}));moonEarth.position.set(-3.5,2.3,-4.6);moonEarth.visible=mission.world==='Moon';scene.add(moonEarth);
+ const moonEarth=new THREE.Mesh(new THREE.SphereGeometry(.28,24,18),new THREE.MeshStandardMaterial({color:0x4b88a2,roughness:.75,emissive:0x123044,emissiveIntensity:.25}));moonEarth.position.set(-3.5,2.3,-4.6);moonEarth.visible=mission.world==='Moon'&&!apollo9;scene.add(moonEarth);
  const earthGroup=new THREE.Group(),earthSurface=new THREE.Mesh(new THREE.SphereGeometry(1.78,48,32),new THREE.MeshStandardMaterial({color:0x235b83,roughness:.9,metalness:0,emissive:0x071522,emissiveIntensity:.18}));earthGroup.add(earthSurface);
  const landMat=new THREE.MeshStandardMaterial({color:0x54795a,roughness:1});
  for(const [x,y,z,sx,sy,sz] of [[-.7,.45,.9,.48,.28,.12],[.25,.73,.85,.33,.18,.12],[.9,.16,.48,.22,.42,.12],[-.45,-.42,.89,.38,.3,.12]]){const land=new THREE.Mesh(new THREE.SphereGeometry(.55,14,10),landMat);land.scale.set(sx,sy,sz);land.position.set(x,y,z);earthGroup.add(land);}
@@ -361,7 +367,7 @@ export function mountMissionDemo(container,mission,ui){
    }else if(apollo9||apollo10||apollo11){
     /* Positioning is handled in the mission specific branches above. */
    }else if(name==='luna 9'){
-    planetGroup.visible=false;surface.visible=true;target.visible=true;flagship.position.set(step<2?0:0,-1.43,0);
+    planetGroup.visible=false;surface.visible=true;target.visible=true;flagship.position.set(0,step<2?.55:-1.43,0);flagship.rotation.z=step===1?.12:0;
    }else if(name==='luna 1'){
     planetGroup.visible=true;surface.visible=false;target.visible=false;flagship.position.set(step<2?2.35:3.3,.7,.15);
    }else if(artemis){
