@@ -1,7 +1,7 @@
-const CACHE = 'outpost-explorers-v4';
+const CACHE = 'outpost-explorers-v5';
 const BASE = new URL('./', self.location.href);
 const SHELL = [
-  'index.html','style.css','app.js','mission-demo.js','missions.js','explore.html','explore.css',
+  'index.html','style.css','app.js','mission-demo.js?v=2','missions.js','explore.html','explore.css',
   'explore-launch.js','expedition.js?v=tradeoffs-1','expedition-missions.js?v=tradeoffs-1','pwa.js','manifest.webmanifest',
   'assets/moon.jpg','assets/mars.jpg','assets/moon-lroc-color.jpg','assets/moon-lola-height.jpg',
   'assets/icon-192.png','assets/icon-512.png','vendor/three.module.js','vendor/three.core.js',
