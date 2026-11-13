@@ -21,9 +21,28 @@ let role = null;
 let localStream = null;
 let activeCall = null;
 let remoteVoiceReady = false;
+let peerReady = false;
+let joinAttempt = 0;
+let lastPeerErrorAt = 0;
+let lastConnectionIssue = '';
+let lastConnectionIssueAt = 0;
 
 function setStatus(message) {
   status.textContent = message;
+}
+
+function connectionHelp(error) {
+  const type = error?.type || error?.name || '';
+  if (type === 'peer-unavailable') {
+    return 'The host is offline or this invite has expired. Ask them to create a fresh invite and keep the trainer open.';
+  }
+  if (type === 'webrtc' || type === 'connection-failed') {
+    return 'Your browsers could not make a direct link. Keep both pages open and retry; some school, mobile, or work networks block direct connections.';
+  }
+  if (type === 'network' || type === 'socket-error' || type === 'socket-closed') {
+    return 'The invite service lost its internet connection. Check both devices are online, then press Join session again.';
+  }
+  return 'The crew link could not connect. Keep the host page open, then press Join session to retry.';
 }
 
 function selection() {
@@ -228,6 +247,7 @@ function attachConnection(conn) {
   }
   connection = conn;
   connection.on('open', () => {
+    lastConnectionIssue = '';
     if (role === 'guest') {
       connection.send({ type: 'hello' });
       setStatus('Connected. Waiting for the host to choose a mission.');
@@ -244,10 +264,19 @@ function attachConnection(conn) {
     remoteVoiceReady = false;
     stopLocalVoice();
     startButton.disabled = true;
-    setStatus('Crew mate disconnected. Create or join a new invite to reconnect.');
+    const recentIssue = lastConnectionIssue && Date.now() - lastConnectionIssueAt < 8000;
+    setStatus(recentIssue ? lastConnectionIssue : 'Crew mate disconnected. Join again, or create a fresh invite if you are the host.');
     updateRoleControls();
   });
-  connection.on('error', () => setStatus('The crew connection was interrupted. Try the invite link again.'));
+  connection.on('error', error => {
+    // PeerJS may emit the useful cause on the Peer immediately before the
+    // DataConnection error. Keep that more specific guidance visible.
+    if (Date.now() - lastPeerErrorAt < 1800) return;
+    lastConnectionIssue = connectionHelp(error);
+    lastConnectionIssueAt = Date.now();
+    setStatus(lastConnectionIssue);
+    updateRoleControls();
+  });
 }
 
 function makePeer() {
@@ -257,11 +286,19 @@ function makePeer() {
     return null;
   }
   peer = new window.Peer();
+  peer.on('open', () => { peerReady = true; });
   peer.on('error', error => {
-    const text = error?.type === 'peer-unavailable'
-      ? 'That invite is no longer available. Ask the host to create a new link.'
-      : 'Could not connect through the online service. Try again in a moment.';
-    setStatus(text);
+    lastPeerErrorAt = Date.now();
+    lastConnectionIssue = connectionHelp(error);
+    lastConnectionIssueAt = lastPeerErrorAt;
+    setStatus(lastConnectionIssue);
+    if (role === 'host' && !inviteLink.value) {
+      peer?.destroy();
+      peer = null;
+      peerReady = false;
+      hostButton.disabled = false;
+    }
+    updateRoleControls();
   });
   peer.on('call', call => {
     if (role !== 'guest' || !localStream) {
@@ -283,13 +320,15 @@ function createInvite() {
   if (!host) return;
   setStatus('Connecting to the invite service…');
   hostButton.disabled = true;
-  host.on('open', id => {
+  const ready = id => {
     inviteLink.value = inviteUrl(id);
     inviteBox.hidden = false;
-    setStatus('Invite ready. Waiting for one crew mate to join.');
+    setStatus('Invite ready. Keep this page open while your crew mate joins.');
     updateRoleControls();
     copyInvite();
-  });
+  };
+  if (peerReady && host.id) ready(host.id);
+  else host.once('open', ready);
   host.on('connection', attachConnection);
 }
 
@@ -314,9 +353,24 @@ function joinInvite(value) {
   openPanel();
   const guest = makePeer();
   if (!guest) return;
+  if (connection?.open) {
+    setStatus('You are already connected to a crew mate.');
+    return;
+  }
   setStatus('Connecting to the host…');
   updateRoleControls();
-  guest.on('open', () => attachConnection(guest.connect(id, { reliable: true })));
+  const attempt = ++joinAttempt;
+  const connect = () => {
+    if (attempt !== joinAttempt || connection?.open) return;
+    attachConnection(guest.connect(id, { reliable: true }));
+    window.setTimeout(() => {
+      if (attempt === joinAttempt && !connection?.open && status.textContent === 'Connecting to the host…') {
+        setStatus('Still trying to reach the host. Keep both pages open; if this takes over 15 seconds, tap Join session again.');
+      }
+    }, 15000);
+  };
+  if (peerReady) connect();
+  else guest.once('open', connect);
 }
 
 toggle.addEventListener('click', () => {
