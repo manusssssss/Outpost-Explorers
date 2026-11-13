@@ -19,3 +19,6 @@ dialog.mission-dialog-expanded{width:min(960px,calc(100% - 28px));max-width:960p
 .mission-date{font-size:.78em;color:var(--muted,#8b9a98);font-variant-numeric:tabular-nums;letter-spacing:.02em}
 .dialog-content>.mission-agency-line{margin:.15rem 0 1.1rem}
 @media(max-width:600px){.mission-agency-line{gap:.2rem .4rem}.mission-date{font-size:.72em}}
+
+.featured-study{padding:.2rem .42rem;border:1px solid rgba(203,183,129,.44);border-radius:999px;color:#ddc98f;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase}
+.mission-meta{row-gap:.45rem}
