@@ -149,3 +149,6 @@ canvas.look-enabled{cursor:crosshair;touch-action:none}
 }
 
 .field-actions{position:absolute;right:24px;bottom:110px;z-index:3;display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:360px;background:#10212cef;border:1px solid #ffffff33;border-radius:9px;padding:8px;font-size:11px}.field-actions[hidden]{display:none}.field-actions button{border:1px solid #b4d6ce55;border-radius:6px;padding:8px;background:#29404a}.field-actions span{width:100%;line-height:1.4;color:#deebd4}@media(max-width:850px){.field-actions{right:10px;bottom:165px;max-width:235px;font-size:10px}.field-actions button{padding:6px}}
+
+/* Keep the interior exit separate from the crew connection button. */
+.exit-lab{left:24px;right:auto;top:100px}@media(max-width:850px){.exit-lab{left:12px;right:auto;top:82px}}
