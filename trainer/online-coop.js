@@ -17,19 +17,22 @@ const voiceStatus = q('#voice-status');
 const remoteAudio = q('#remote-audio');
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-let room = null;
+let socket = null;
 let roomCode = '';
 let role = null;
 let remoteReady = false;
-let localMic = null;
-let remoteAudioTrack = null;
-let joinTimer = 0;
 let connecting = false;
+let localStream = null;
+let peerConnection = null;
+let audioSender = null;
+let remoteVoiceStream = null;
+let pendingIce = [];
+let offerStarted = false;
 
 function setStatus(message) { status.textContent = message; }
-function config() { return window.OUTPOST_LIVEKIT_CONFIG || {}; }
-function readyConfig() { return Boolean(config().serverUrl && config().tokenUrl); }
-function isConnected() { return Boolean(room && remoteReady && room.state === 'connected'); }
+function config() { return window.OUTPOST_ROOM_CONFIG || {}; }
+function configured() { return Boolean(config().websocketUrl); }
+function connected() { return Boolean(socket && socket.readyState === WebSocket.OPEN && remoteReady); }
 function selection() {
   const [world, region] = mission.value.split('|');
   return { world, region, level: level.value };
@@ -43,6 +46,19 @@ function openPanel() {
   panel.hidden = false;
   toggle.setAttribute('aria-expanded', 'true');
 }
+function updateControls() {
+  const guest = role === 'guest';
+  mission.disabled = guest;
+  level.disabled = guest;
+  hostButton.disabled = connecting || Boolean(socket);
+  const ready = connected();
+  startButton.disabled = !ready;
+  startButton.textContent = guest ? 'Request mission start' : 'Start mission together';
+  chatInput.disabled = !ready;
+  chatSend.disabled = !ready;
+  voiceButton.disabled = !ready;
+  voiceEndButton.disabled = !ready || !localStream;
+}
 function showMessage(sender, text, own = false) {
   chatLog.querySelector('.chat-empty')?.remove();
   const row = document.createElement('p');
@@ -55,37 +71,16 @@ function showMessage(sender, text, own = false) {
   chatLog.append(row);
   chatLog.scrollTop = chatLog.scrollHeight;
 }
-function voiceMessage(message) { voiceStatus.textContent = message; }
-function updateControls() {
-  const guest = role === 'guest';
-  mission.disabled = guest;
-  level.disabled = guest;
-  hostButton.disabled = connecting || Boolean(room);
-  const connected = isConnected();
-  startButton.disabled = !connected;
-  startButton.textContent = guest ? 'Request mission start' : 'Start mission together';
-  chatInput.disabled = !connected;
-  chatSend.disabled = !connected;
-  voiceButton.disabled = !connected;
-  voiceEndButton.disabled = !connected || !localMic;
-}
-async function send(message) {
-  if (!room || room.state !== 'connected') return;
-  try {
-    const data = encoder.encode(JSON.stringify(message));
-    await room.localParticipant.publishData(data, {
-      reliable: message.type !== 'trainer-state',
-      topic: message.type === 'trainer-state' ? 'outpost-state' : 'outpost-control'
-    });
-  } catch {
-    setStatus('Connection paused while sending. Wait for LiveKit to reconnect.');
-  }
+function send(message) {
+  if (!socket || socket.readyState !== WebSocket.OPEN) return;
+  try { socket.send(JSON.stringify(message)); }
+  catch { setStatus('The room relay stopped sending. Rejoin using the invite link.'); }
 }
 function inviteUrl(code) {
   const url = new URL(location.href);
   url.search = '';
   url.searchParams.set('room', code);
-  url.searchParams.set('transport', 'livekit');
+  url.searchParams.set('transport', 'room-relay');
   return url.href;
 }
 async function copyInvite() {
@@ -93,10 +88,8 @@ async function copyInvite() {
   inviteLink.select();
   try {
     await navigator.clipboard.writeText(inviteLink.value);
-    setStatus('LiveKit invite copied. Send the link to one crew mate.');
-  } catch {
-    setStatus('Select and copy the invite link, then send it to one crew mate.');
-  }
+    setStatus('Room invite copied. Send the link to one crew mate.');
+  } catch { setStatus('Select and copy the invite link, then send it to one crew mate.'); }
 }
 function startLocalMission(value) {
   setSelection(value);
@@ -111,13 +104,39 @@ function startMissionTogether() {
     setStatus('Start request sent to the host.');
     return;
   }
-  if (role !== 'host' || !isConnected()) return;
+  if (role !== 'host' || !connected()) return;
   startLocalMission(value);
   send({ type: 'mission-start', selection: value });
   setStatus('Mission started for both players. Player 1 is Engineer; Player 2 is Scientist.');
 }
-function handleMessage(message) {
+function handleRoomMessage(message) {
   if (!message || typeof message !== 'object') return;
+  if (message.type === 'room-state') {
+    remoteReady = Boolean(message.peerPresent && message.peerRole !== role);
+    if (remoteReady) {
+      setStatus(role === 'host' ? 'Crew mate connected. Choose a mission, then start together.' : 'Host found. Waiting for mission selection…');
+      updateControls();
+      prepareVoice();
+      if (role === 'guest') send({ type: 'hello' });
+    }
+    return;
+  }
+  if (message.type === 'peer-joined') {
+    remoteReady = true;
+    setStatus(role === 'host' ? 'Crew mate connected. Choose a mission, then start together.' : 'Connected to the host. Loading mission details…');
+    updateControls();
+    prepareVoice();
+    if (role === 'host') send({ type: 'mission-selection', selection: selection() });
+    else send({ type: 'hello' });
+    return;
+  }
+  if (message.type === 'peer-left') {
+    remoteReady = false;
+    closeVoice();
+    setStatus('Crew mate disconnected. Rejoin using the same invite if the room is still open.');
+    updateControls();
+    return;
+  }
   if (message.type === 'chat' && typeof message.text === 'string') showMessage(message.sender || 'Crew mate', message.text);
   if (message.type === 'hello' && role === 'host') {
     send({ type: 'mission-selection', selection: selection() });
@@ -134,129 +153,65 @@ function handleMessage(message) {
     updateControls();
   }
   if (message.type === 'mission-start-request' && role === 'host') startMissionTogether();
-  if (message.type === 'trainer-state' && message.state) {
-    window.dispatchEvent(new CustomEvent('outpost:crew-state', { detail: message.state }));
-  }
+  if (message.type === 'trainer-state' && message.state) window.dispatchEvent(new CustomEvent('outpost:crew-state', { detail: message.state }));
   if (message.action) window.dispatchEvent(new CustomEvent('outpost:crew-action', { detail: message }));
+  if (message.type === 'voice-ready' && role === 'host' && message.ready) beginVoiceNegotiation();
+  if (message.type === 'rtc-signal') handleSignal(message.signal);
 }
-function onData(payload, participant) {
-  if (participant?.identity && role === 'host' && !participant.identity.startsWith('guest-')) return;
-  if (participant?.identity && role === 'guest' && !participant.identity.startsWith('host-')) return;
-  try { handleMessage(JSON.parse(decoder.decode(payload))); } catch { /* Ignore malformed or unrelated room data. */ }
-}
-function handleParticipantConnected(participant) {
-  const expected = role === 'host' ? participant.identity.startsWith('guest-') : participant.identity.startsWith('host-');
-  if (!expected) return;
-  remoteReady = true;
-  if (role === 'host') {
-    setStatus('Crew mate connected. Choose a mission, then start together.');
-    send({ type: 'mission-selection', selection: selection() });
-  } else {
-    setStatus('Connected to the host. Loading the mission selection…');
-    send({ type: 'hello' });
-  }
-  voiceMessage('LiveKit voice and text chat are ready. Both players can enable their microphones.');
-  updateControls();
-}
-function handleParticipantDisconnected(participant) {
-  if (!participant?.identity?.startsWith(role === 'host' ? 'guest-' : 'host-')) return;
-  remoteReady = false;
-  setStatus('Crew mate disconnected. Rejoin with the same invite if the room is still open.');
-  voiceMessage('Voice disconnected. Your microphone is still muted locally.');
-  updateControls();
-}
-async function getToken(code, asHost) {
-  const response = await fetch(config().tokenUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ room: code, role: asHost ? 'host' : 'guest' })
-  });
-  if (!response.ok) {
-    const details = await response.json().catch(() => ({}));
-    throw new Error(details.error || `Token service returned ${response.status}`);
-  }
-  return response.json();
-}
-async function connectRoom(code, asHost) {
-  if (!readyConfig()) {
-    setStatus('LiveKit is not configured yet. Add the public LiveKit server URL and deployed token Worker URL in livekit-config.js.');
+function connectRoom(code, asHost) {
+  if (!configured()) {
+    setStatus('Room relay is not configured yet. Deploy the included Cloudflare Worker, then add its URL in room-config.js.');
     return;
   }
-  if (!window.LivekitClient?.Room) {
-    setStatus('LiveKit client did not load. Check your internet connection and refresh.');
-    return;
-  }
-  if (connecting || room) return;
-  connecting = true;
+  if (connecting || socket) return;
   role = asHost ? 'host' : 'guest';
   roomCode = code;
+  connecting = true;
   updateControls();
-  setStatus(asHost ? 'Creating your private LiveKit room…' : 'Connecting to the host through LiveKit…');
-  try {
-    const { token } = await getToken(code, asHost);
-    const liveRoom = new window.LivekitClient.Room({
-      adaptiveStream: true,
-      dynacast: true,
-      disconnectOnPageLeave: true
-    });
-    room = liveRoom;
-    liveRoom.on(window.LivekitClient.RoomEvent.DataReceived, onData);
-    liveRoom.on(window.LivekitClient.RoomEvent.ParticipantConnected, handleParticipantConnected);
-    liveRoom.on(window.LivekitClient.RoomEvent.ParticipantDisconnected, handleParticipantDisconnected);
-    liveRoom.on(window.LivekitClient.RoomEvent.TrackSubscribed, (track) => {
-      if (track.kind !== window.LivekitClient.Track.Kind.Audio) return;
-      remoteAudioTrack = track;
-      remoteAudio.hidden = false;
-      track.attach(remoteAudio);
-      remoteAudio.play().then(() => voiceMessage('Voice connected. Use the microphone button to mute or unmute.'))
-        .catch(() => voiceMessage('Voice connected. Tap Play on the audio control to hear your crew mate.'));
-    });
-    liveRoom.on(window.LivekitClient.RoomEvent.TrackUnsubscribed, track => {
-      if (track === remoteAudioTrack) {
-        track.detach(remoteAudio);
-        remoteAudioTrack = null;
-        remoteAudio.hidden = true;
-      }
-    });
-    liveRoom.on(window.LivekitClient.RoomEvent.Disconnected, () => {
-      remoteReady = false;
-      if (room === liveRoom) room = null;
-      clearTimeout(joinTimer);
-      connecting = false;
-      setStatus('LiveKit disconnected. Check your connection, then join the invite again.');
-      updateControls();
-    });
-    await liveRoom.connect(config().serverUrl, token);
+  setStatus(asHost ? 'Connecting to the room relay…' : 'Joining the crew room…');
+  let base = config().websocketUrl.trim().replace(/\/+$/, '');
+  base = base.replace(/^https:/i, 'wss:').replace(/^http:/i, 'ws:');
+  const url = `${base}/room/${encodeURIComponent(code)}?role=${role}`;
+  const ws = new WebSocket(url);
+  socket = ws;
+  ws.addEventListener('open', () => {
     connecting = false;
     inviteBox.hidden = false;
     inviteLink.value = asHost ? inviteUrl(code) : location.href;
     if (asHost) {
-      setStatus('LiveKit room is ready. Keep this page open while your crew mate joins.');
+      setStatus('Room is ready. Keep this page open while your crew mate joins.');
       copyInvite();
     } else {
-      setStatus('Connected to the LiveKit room; waiting for the host…');
+      setStatus('Joined the relay. Looking for the host…');
       send({ type: 'hello' });
-      joinTimer = window.setTimeout(() => {
-        if (!remoteReady && room === liveRoom) {
-          setStatus('No host appeared in this room. Check the invite link and try again.');
-          liveRoom.disconnect();
-        }
-      }, 18000);
     }
-    for (const participant of liveRoom.remoteParticipants.values()) handleParticipantConnected(participant);
     updateControls();
-  } catch (error) {
-    room = null;
-    remoteReady = false;
+  });
+  ws.addEventListener('message', event => {
+    try { handleRoomMessage(JSON.parse(typeof event.data === 'string' ? event.data : decoder.decode(event.data))); }
+    catch { /* Ignore invalid room messages. */ }
+  });
+  ws.addEventListener('error', () => {
     connecting = false;
-    setStatus(`LiveKit could not connect: ${String(error?.message || error).slice(0, 220)}. Check the room link and token service.`);
+    setStatus('Could not reach the room relay. Check its Worker URL and try again.');
     updateControls();
-  }
+  });
+  ws.addEventListener('close', event => {
+    connecting = false;
+    remoteReady = false;
+    if (socket === ws) socket = null;
+    closeVoice();
+    const reason = event.code === 1008 || event.code === 1013
+      ? 'That player slot is occupied or this invite already has two players. Create a fresh invite.'
+      : 'The room relay disconnected. Check your connection, then join again.';
+    setStatus(reason);
+    updateControls();
+  });
 }
 function createInvite() {
   openPanel();
-  if (!readyConfig()) {
-    setStatus('LiveKit is not configured yet. Add the public LiveKit server URL and deployed token Worker URL in livekit-config.js.');
+  if (!configured()) {
+    setStatus('Deploy the included Cloudflare room relay and set its Worker URL in trainer/room-config.js before creating invites.');
     return;
   }
   const code = crypto.randomUUID().replaceAll('-', '');
@@ -264,7 +219,7 @@ function createInvite() {
   inviteLink.value = inviteUrl(code);
   connectRoom(code, true);
 }
-function roomFromInput(value) {
+function parseRoom(value) {
   const text = value.trim();
   if (!text) return '';
   try {
@@ -273,58 +228,128 @@ function roomFromInput(value) {
   } catch { return text; }
 }
 function joinInvite(value) {
-  const code = roomFromInput(value);
-  if (!code) { setStatus('Paste a LiveKit invite link or room code first.'); return; }
-  if (!/^[a-f0-9-]{16,64}$/i.test(code)) { setStatus('That invite code does not look valid. Paste the full link or room code.'); return; }
+  const code = parseRoom(value);
+  if (!/^[a-f0-9-]{16,64}$/i.test(code)) {
+    setStatus('Paste a valid crew invite link or room code first.');
+    return;
+  }
   openPanel();
   inviteBox.hidden = false;
   connectRoom(code, false);
 }
+function prepareVoice() {
+  if (!connected() || peerConnection) return;
+  const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+  peerConnection = pc;
+  const transceiver = pc.addTransceiver('audio', { direction: 'sendrecv' });
+  audioSender = transceiver.sender;
+  if (localStream?.getAudioTracks()[0]) audioSender.replaceTrack(localStream.getAudioTracks()[0]).catch(() => {});
+  pc.onicecandidate = event => { if (event.candidate) send({ type: 'rtc-signal', signal: { candidate: event.candidate } }); };
+  pc.ontrack = event => {
+    remoteVoiceStream = event.streams[0] || new MediaStream([event.track]);
+    remoteAudio.srcObject = remoteVoiceStream;
+    remoteAudio.hidden = false;
+    remoteAudio.play().then(() => { voiceStatus.textContent = 'Voice connected. Use the microphone button to mute or unmute.'; })
+      .catch(() => { voiceStatus.textContent = 'Voice connected. Tap Play to hear your crew mate.'; });
+  };
+  pc.onconnectionstatechange = () => {
+    if (pc.connectionState === 'failed') voiceStatus.textContent = 'Voice could not connect on this network. Mission data and text chat are still connected.';
+  };
+  if (role === 'host') beginVoiceNegotiation();
+}
+async function beginVoiceNegotiation() {
+  if (role !== 'host' || !connected()) return;
+  prepareVoice();
+  if (!peerConnection || offerStarted) return;
+  offerStarted = true;
+  try {
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+    send({ type: 'rtc-signal', signal: { description: peerConnection.localDescription } });
+    voiceStatus.textContent = 'Voice link is being prepared. Allow microphone access on both devices.';
+  } catch {
+    offerStarted = false;
+    voiceStatus.textContent = 'Voice setup did not finish. The mission relay is still available.';
+  }
+}
+async function handleSignal(signal) {
+  if (!signal || !remoteReady) return;
+  prepareVoice();
+  const pc = peerConnection;
+  if (!pc) return;
+  try {
+    if (signal.description) {
+      await pc.setRemoteDescription(signal.description);
+      for (const candidate of pendingIce.splice(0)) await pc.addIceCandidate(candidate);
+      if (signal.description.type === 'offer' && role === 'guest') {
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        send({ type: 'rtc-signal', signal: { description: pc.localDescription } });
+      }
+    } else if (signal.candidate) {
+      if (!pc.remoteDescription) pendingIce.push(signal.candidate);
+      else await pc.addIceCandidate(signal.candidate);
+    }
+  } catch {
+    voiceStatus.textContent = 'Voice signaling failed. Game controls and text chat remain connected.';
+  }
+}
+function closeVoice() {
+  if (peerConnection) { peerConnection.ontrack = null; peerConnection.close(); }
+  peerConnection = null;
+  audioSender = null;
+  remoteVoiceStream = null;
+  pendingIce = [];
+  offerStarted = false;
+  remoteAudio.srcObject = null;
+  remoteAudio.hidden = true;
+  localStream?.getTracks().forEach(track => track.stop());
+  localStream = null;
+  voiceButton.textContent = 'Enable microphone';
+  voiceEndButton.disabled = true;
+}
 async function toggleMicrophone() {
-  if (!room || !isConnected()) return;
-  if (!localMic) {
+  if (!connected()) return;
+  if (!localStream) {
     if (!navigator.mediaDevices?.getUserMedia) {
-      voiceMessage('This browser cannot use a microphone here. Open the secure website in a current browser.');
+      voiceStatus.textContent = 'Microphone needs a current browser on the secure website.';
       return;
     }
     try {
-      localMic = await window.LivekitClient.createLocalAudioTrack({ echoCancellation: true, noiseSuppression: true, autoGainControl: true });
-      await room.localParticipant.publishTrack(localMic);
+      localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+      prepareVoice();
+      const track = localStream.getAudioTracks()[0];
+      if (audioSender) await audioSender.replaceTrack(track);
       voiceButton.textContent = 'Mute microphone';
       voiceEndButton.disabled = false;
-      voiceMessage('Microphone is on. Your crew mate can hear you.');
+      voiceStatus.textContent = 'Microphone is on. Voice uses a direct WebRTC link; some networks block it.';
+      send({ type: 'voice-ready', ready: true });
     } catch (error) {
-      localMic = null;
-      voiceMessage(error?.name === 'NotAllowedError' ? 'Microphone permission was not allowed. Change the browser permission, then try again.' : 'Could not start voice. Check microphone permission and connection.');
+      localStream?.getTracks().forEach(track => track.stop());
+      localStream = null;
+      voiceStatus.textContent = error?.name === 'NotAllowedError' ? 'Microphone permission was denied. Allow it for this website, then retry.' : 'Could not start the microphone. Check permission and try again.';
     }
     updateControls();
     return;
   }
-  if (localMic.isMuted) {
-    await localMic.unmute();
-    voiceButton.textContent = 'Mute microphone';
-    voiceMessage('Microphone is on.');
-  } else {
-    await localMic.mute();
-    voiceButton.textContent = 'Unmute microphone';
-    voiceMessage('Microphone is muted. You can still hear your crew mate.');
-  }
+  const track = localStream.getAudioTracks()[0];
+  if (!track) return;
+  track.enabled = !track.enabled;
+  voiceButton.textContent = track.enabled ? 'Mute microphone' : 'Unmute microphone';
+  voiceStatus.textContent = track.enabled ? 'Microphone is on.' : 'Microphone is muted.';
 }
-async function endVoice() {
-  if (!localMic) return;
-  try {
-    await room?.localParticipant.unpublishTrack(localMic);
-    localMic.stop();
-  } catch { /* The room may already be disconnected. */ }
-  localMic = null;
+function endVoice() {
+  localStream?.getTracks().forEach(track => track.stop());
+  localStream = null;
+  if (audioSender) audioSender.replaceTrack(null).catch(() => {});
   voiceButton.textContent = 'Enable microphone';
-  voiceMessage('Voice chat ended. Your text chat stays connected.');
+  voiceStatus.textContent = 'Microphone is off. Mission data and chat remain connected.';
   updateControls();
 }
 function sendChat(event) {
   event.preventDefault();
   const text = chatInput.value.trim().slice(0, 400);
-  if (!text || !isConnected()) return;
+  if (!text || !connected()) return;
   send({ type: 'chat', text, sender: role === 'host' ? 'Player 1 · Engineer' : 'Player 2 · Scientist' });
   showMessage('You', text, true);
   chatInput.value = '';
@@ -347,20 +372,20 @@ voiceEndButton.addEventListener('click', endVoice);
 q('#online-code').addEventListener('keydown', event => { if (event.key === 'Enter') joinInvite(q('#online-code').value); });
 mission.addEventListener('change', () => send({ type: 'mission-selection', selection: selection() }));
 level.addEventListener('change', () => send({ type: 'mission-selection', selection: selection() }));
-startButton.addEventListener('click', () => { if (isConnected()) startMissionTogether(); });
+startButton.addEventListener('click', () => { if (connected()) startMissionTogether(); });
 window.OutpostMultiplayer = {
   role: () => role === 'host' ? 1 : role === 'guest' ? 2 : 0,
-  connected: isConnected,
+  connected,
   sendState: state => send({ type: 'trainer-state', state }),
   sendCommand: message => send(message)
 };
 const incoming = new URLSearchParams(location.search);
-if (incoming.get('room') && incoming.get('transport') === 'livekit') joinInvite(location.href);
+if (incoming.get('room') && incoming.get('transport') === 'room-relay') joinInvite(location.href);
 window.addEventListener('pagehide', () => {
-  clearTimeout(joinTimer);
-  if (localMic) { localMic.stop(); localMic = null; }
-  room?.disconnect();
+  closeVoice();
+  try { socket?.close(1000, 'page hidden'); } catch { }
 });
 updateControls();
-if (!readyConfig()) setStatus('LiveKit ready to configure. Set the LiveKit server and token-service URLs to enable online co-op.');
+voiceStatus.textContent = 'Mission chat and state use the room relay. Voice uses a direct peer link and may be blocked on some networks.';
+if (!configured()) setStatus('Cloudflare room relay is ready to configure. Add its Worker URL in trainer/room-config.js.');
 
