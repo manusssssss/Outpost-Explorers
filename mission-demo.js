@@ -310,7 +310,7 @@ export function mountMissionDemo(container,mission,ui){
  const returnCapsule=new THREE.Group();
  const capsuleBody=new THREE.Mesh(new THREE.ConeGeometry(.24,.62,8),new THREE.MeshStandardMaterial({color:0xdadbd0,metalness:.25,roughness:.4}));capsuleBody.rotation.z=Math.PI;returnCapsule.add(capsuleBody);
  const capsuleBase=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.11,12),new THREE.MeshStandardMaterial({color:0xc36a43,metalness:.2,roughness:.52}));capsuleBase.position.y=-.3;returnCapsule.add(capsuleBase);scene.add(returnCapsule);
- const moonEarth=new THREE.Mesh(new THREE.SphereGeometry(.28,24,18),new THREE.MeshStandardMaterial({color:0x4b88a2,roughness:.75,emissive:0x123044,emissiveIntensity:.25}));moonEarth.position.set(-3.5,2.3,-4.6);moonEarth.visible=mission.world==='Moon'&&!apollo9;scene.add(moonEarth);
+ const moonEarth=new THREE.Group();moonEarth.visible=false;scene.add(moonEarth);
  const earthCanvas=document.createElement('canvas');earthCanvas.width=1024;earthCanvas.height=512;
  const earthCtx=earthCanvas.getContext('2d'),ocean=earthCtx.createLinearGradient(0,0,0,512);ocean.addColorStop(0,'#17486f');ocean.addColorStop(.5,'#2779a4');ocean.addColorStop(1,'#123552');earthCtx.fillStyle=ocean;earthCtx.fillRect(0,0,1024,512);
  earthCtx.strokeStyle='rgba(151,205,219,.12)';earthCtx.lineWidth=1;
