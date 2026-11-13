@@ -1,5 +1,5 @@
 import {missions,checked,sources} from './missions.js';
-import {mountMissionDemo} from './mission-demo.js?v=3';
+import {mountMissionDemo} from './mission-demo.js?v=4';
 const $=s=>document.querySelector(s);
 const $$=s=>[...document.querySelectorAll(s)];
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
