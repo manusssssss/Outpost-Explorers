@@ -7,7 +7,7 @@
   <meta name="description" content="Explore Moon and Mars outposts, walk with two astronauts, drive the rover, and solve science missions together.">
   <title>Moon & Mars Mission Trainer | Outpost Explorers</title>
   <link rel="stylesheet" href="trainer.css?v=co-op-outpost-20261113c">
-  <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+  
 </head>
 <body>
 <main class="expedition">
@@ -74,11 +74,18 @@ if (location.protocol === 'file:') {
   document.getElementById('loading').hidden = true;
   document.getElementById('file-help').hidden = false;
 } else {
-  import('./trainer.js?v=crew-lab-missions-20261113d').catch(error => {
+  import('./trainer.js?v=crew-lab-missions-20261113e').catch(error => {
     console.error('Mission trainer failed to start:', error);
     const loading = document.getElementById('loading');
     loading.querySelector('p').textContent = 'Mission could not start. Error details:';
     const details = document.createElement('pre');
     details.textContent = `${error.stack || error.message || String(error)}\nFile: ${error.fileName || 'unknown'} · Line: ${error.lineNumber || '?'} · Column: ${error.columnNumber || '?'}`;
     loading.append(details);
-    loading.
+    loading.classList.add('load-error');
+  });
+}
+</script>
+</body>
+</html>
+
+
