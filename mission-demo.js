@@ -345,12 +345,12 @@ export function mountMissionDemo(container,mission,ui){
    const command=flagship.getObjectByName('command'),lm=flagship.getObjectByName('lunar-module'),probe=flagship.getObjectByName('impact-probe');
    if(apollo9){
     planetGroup.visible=false;earthGroup.visible=true;surface.visible=false;target.visible=false;
-    if(command)command.position.set(-2.25,.25,.12);
-    if(lm){lm.visible=true;lm.position.set(step===0?-2.2:step===1?2.45:step===2?-1.25:-2.2,step===1?.15:.25,step===1?.35:.12);}
+    if(command)command.position.set(-2.65,.25,.12);
+    if(lm){lm.visible=true;lm.position.set(step===0?-2.92:step===1?2.65:step===2?-1.35:-2.92,step===1?.15:.25,step===1?.35:.12);}
    }else if(apollo10){
     planetGroup.visible=true;surface.visible=false;target.visible=false;
     if(command)command.position.set(step>=2?3.05:2.85,.48,.2);
-    if(lm){lm.visible=step>=1;lm.position.set(step===1?-.9:step===2?-.75:-.55,step===2?1.72:1.95,step===2?.2:.1);}
+    if(lm){lm.visible=step>=1;lm.position.set(step===1?-.9:step===2?-.75:-.55,step===2?2.08:2.15,step===2?.2:.1);}
    }else if(apollo11){
     planetGroup.visible=false;surface.visible=true;target.visible=true;
     if(command)command.position.set(step>=2?2.45:2.15,step===2?1.15:.8,-1.1);
@@ -386,8 +386,8 @@ export function mountMissionDemo(container,mission,ui){
  ui.previous.addEventListener('click',previous);ui.next.addEventListener('click',next);showStep();resize();
  const animate=()=>{
   if(disposed)return;frame=requestAnimationFrame(animate);const t=performance.now()*.001;
-  planetGroup.rotation.y=t*.065;earthGroup.rotation.y=t*.045;if(flagship){flagship.rotation.y=(apollo9||apollo10||artemis?0.12:0.03)+Math.sin(t*.35)*.025;if(name==='luna 1'){const pass=(t*.055)%1;flagship.position.set(-3.6+pass*7,.7+Math.sin(pass*Math.PI)*.28,.2);}if((apollo9||apollo10||artemis&&name!=='artemis ii'||name==='chandrayaan-1')&&step<steps.length){const radius=apollo9?2.75:2.72;flagship.position.set(Math.cos(t*.14)*radius,.38+Math.sin(t*.14)*.35,Math.sin(t*.14)*radius);}if(name==='perseverance / ingenuity'){flagship.position.x=-1.35+(step/(steps.length-1))*2.1;flagship.traverse(o=>{if(o.name==='rover-wheel')o.rotation.z=-t*1.8;});const ing=flagship.getObjectByName('ingenuity');if(ing){const blade=ing.getObjectByName('rotor-blade');if(blade)blade.rotation.y=t*12;ing.position.y=.38+(step>=2?Math.sin(t*4)*.18:0);}}if(chandrayaan3){const r=flagship.getObjectByName('rover');if(r)r.traverse(o=>{if(o.name==='rover-wheel')o.rotation.z=-t*1.2;});}}
-  if(isFlyby&&!flagship){const path=(t*.24)%1;satellite.position.set(-3.5+path*7,.45+Math.sin(path*Math.PI)*.25,0);}else satellite.position.set(Math.cos(t*.34)*2.12,Math.sin(t*.34)*.78,Math.sin(t*.34)*1.35);
+  planetGroup.rotation.y=t*.065;earthGroup.rotation.y=t*.045;if(flagship){flagship.rotation.y=(apollo9||apollo10||artemis?0.12:0.03)+Math.sin(t*.35)*.025;if(name==='luna 1'){const pass=(t*.055)%1;flagship.position.set(-3.6+pass*7,2.5+Math.sin(pass*Math.PI)*.2,.2);}if(name==='artemis ii'){const pass=(t*.045)%1;flagship.position.set(-3.7+pass*7,2.55+Math.sin(pass*Math.PI)*.18,0);}if(apollo9||apollo10){flagship.position.set(0,0,0);flagship.rotation.y=t*.14;}else if((artemis&&name==='artemis i'||name==='chandrayaan-1')&&step<steps.length){const radius=2.78;flagship.position.set(Math.cos(t*.14)*radius,.38+Math.sin(t*.14)*.35,Math.sin(t*.14)*radius);}if(name==='perseverance / ingenuity'){flagship.position.x=-1.35+(step/(steps.length-1))*2.1;flagship.traverse(o=>{if(o.name==='rover-wheel')o.rotation.z=-t*1.8;});const ing=flagship.getObjectByName('ingenuity');if(ing){const blade=ing.getObjectByName('rotor-blade');if(blade)blade.rotation.y=t*12;ing.position.y=.38+(step>=2?Math.sin(t*4)*.18:0);}}if(chandrayaan3){const r=flagship.getObjectByName('rover');if(r)r.traverse(o=>{if(o.name==='rover-wheel')o.rotation.z=-t*1.2;});}}
+  if(isFlyby&&!flagship){const path=(t*.24)%1;satellite.position.set(-3.5+path*7,2.5+Math.sin(path*Math.PI)*.18,0);}else satellite.position.set(Math.cos(t*.34)*2.12,Math.sin(t*.34)*.78,Math.sin(t*.34)*1.35);
   satellite.rotation.y=-t*.34;
   if(!isOrbital){
   const travel=step/(steps.length-1);rover.group.position.x=-2.1+travel*3.1;rover.group.rotation.y=.12+travel*.18;
