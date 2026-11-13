@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0d1a23">
   <meta name="description" content="Explore Moon and Mars outposts, walk with two astronauts, drive the rover, and solve science missions together.">
   <title>Moon & Mars Mission Trainer | Outpost Explorers</title>
-  <link rel="stylesheet" href="trainer.css?v=trainer-panel-fpp-20261113a">
+  <link rel="stylesheet" href="trainer.css?v=mobile-joysticks-20261113a">
 
 </head>
 <body>
@@ -108,6 +108,7 @@
   <div class="scene-tools"><button id="crew-switch" type="button">Player 1 · Engineer</button><button id="view-mode" type="button" aria-pressed="false" disabled>View: Third-person</button><button id="reset-camera">Reset view ↻</button><label>Quality <select id="quality"><option value="balanced">Balanced</option><option value="low">Low</option><option value="high">High</option></select></label><button id="motion" aria-pressed="false">Motion: on</button></div>
   <p class="scene-hint" id="hint">Drag to look · Scroll to zoom · Select a destination</p>
   <div id="drive-pad" class="drive-pad" hidden aria-label="Explorer and rover controls"><button id="vehicle-mode" type="button">Board rover</button><button data-key="ArrowUp" aria-label="Move forward">↑</button><div><button data-key="ArrowLeft" aria-label="Turn left">←</button><button data-key="ArrowDown" aria-label="Move backward">↓</button><button data-key="ArrowRight" aria-label="Turn right">→</button></div><button id="recover">Reset rover</button><span id="distance"></span></div>
+  <div id="mobile-controls" class="mobile-controls" hidden><div id="move-stick" class="touch-stick" aria-label="Movement joystick"><span class="stick-label">MOVE</span><span class="stick-knob"></span></div><div class="mobile-touch-actions"><button id="mobile-vehicle" type="button" hidden>Board rover</button></div><div id="look-stick" class="touch-stick look-stick" aria-label="Camera joystick"><span class="stick-label">LOOK</span><span class="stick-knob"></span></div></div><aside id="mission-toast" class="mission-toast" aria-live="polite" hidden><button id="mission-toast-close" type="button" aria-label="Dismiss mission prompt">×</button><strong id="mobile-objective"></strong><span id="mobile-brief"></span></aside><aside id="rotate-hint" class="rotate-hint" hidden><b>↻</b> Turn your phone sideways for a clearer view</aside>
   <div id="loading" class="loading"><span>✳</span><p>Preparing your mission…</p></div>
   <div id="file-help" class="unavailable" hidden><h2>Start the local server first</h2><p>The 3D game cannot start from a file opened by double-clicking. In VS Code, open this folder, choose <b>Terminal → New Terminal</b>, and run:</p><pre>python -m http.server 8080</pre><p>If that command is not found, try <code>py -m http.server 8080</code>.</p><p>Then open <a href="http://localhost:8080">http://localhost:8080</a> while the terminal stays open.</p></div>
   <div id="unavailable" class="unavailable" hidden><h2>Your browser couldn’t start the 3D scene.</h2><p>Try a browser with WebGL enabled, or open the site on a device with 3D graphics support.</p><button id="retry-load">Try again</button></div>
@@ -134,7 +135,7 @@ if (location.protocol === 'file:') {
 </script>
 <script src="./realtime-config.js?v=relay-config-20261113b"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js" crossorigin="anonymous"></script>
-<script type="module" src="./trainer.js?v=trainer-panel-fpp-20261113a"></script>
+<script type="module" src="./trainer.js?v=mobile-joysticks-20261113a"></script>
 <script type="module" src="./online-coop.js?v=invite-lobby-20261113e"></script>
 </body></html>
 
