@@ -311,10 +311,27 @@ export function mountMissionDemo(container,mission,ui){
  const capsuleBody=new THREE.Mesh(new THREE.ConeGeometry(.24,.62,8),new THREE.MeshStandardMaterial({color:0xdadbd0,metalness:.25,roughness:.4}));capsuleBody.rotation.z=Math.PI;returnCapsule.add(capsuleBody);
  const capsuleBase=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.11,12),new THREE.MeshStandardMaterial({color:0xc36a43,metalness:.2,roughness:.52}));capsuleBase.position.y=-.3;returnCapsule.add(capsuleBase);scene.add(returnCapsule);
  const moonEarth=new THREE.Mesh(new THREE.SphereGeometry(.28,24,18),new THREE.MeshStandardMaterial({color:0x4b88a2,roughness:.75,emissive:0x123044,emissiveIntensity:.25}));moonEarth.position.set(-3.5,2.3,-4.6);moonEarth.visible=mission.world==='Moon'&&!apollo9;scene.add(moonEarth);
- const earthGroup=new THREE.Group(),earthSurface=new THREE.Mesh(new THREE.SphereGeometry(1.78,48,32),new THREE.MeshStandardMaterial({color:0x235b83,roughness:.9,metalness:0,emissive:0x071522,emissiveIntensity:.18}));earthGroup.add(earthSurface);
- const landMat=new THREE.MeshStandardMaterial({color:0x54795a,roughness:1});
- for(const [x,y,z,sx,sy,sz] of [[-.7,.45,.9,.44,.24,.09],[.25,.73,.85,.31,.18,.085],[.9,.16,.48,.2,.38,.085],[-.45,-.42,.89,.36,.28,.085]]){const normal=new THREE.Vector3(x,y,z).normalize();const land=new THREE.Mesh(new THREE.SphereGeometry(.55,16,12),landMat);land.scale.set(sx,sy,sz);land.position.copy(normal).multiplyScalar(1.785);land.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),normal);earthGroup.add(land);}
- const clouds=new THREE.Mesh(new THREE.SphereGeometry(1.81,36,24),new THREE.MeshStandardMaterial({color:0xf0f2eb,transparent:true,opacity:.14,roughness:1}));earthGroup.add(clouds);earthGroup.visible=apollo9;scene.add(earthGroup);
+ const earthCanvas=document.createElement('canvas');earthCanvas.width=1024;earthCanvas.height=512;
+ const earthCtx=earthCanvas.getContext('2d'),ocean=earthCtx.createLinearGradient(0,0,0,512);ocean.addColorStop(0,'#17486f');ocean.addColorStop(.5,'#2779a4');ocean.addColorStop(1,'#123552');earthCtx.fillStyle=ocean;earthCtx.fillRect(0,0,1024,512);
+ earthCtx.strokeStyle='rgba(151,205,219,.12)';earthCtx.lineWidth=1;
+ for(let y=64;y<512;y+=64){earthCtx.beginPath();earthCtx.moveTo(0,y);earthCtx.lineTo(1024,y);earthCtx.stroke();}
+ for(let x=64;x<1024;x+=64){earthCtx.beginPath();earthCtx.moveTo(x,0);earthCtx.lineTo(x,512);earthCtx.stroke();}
+ const continents=[
+  [[.08,.24],[.12,.17],[.19,.13],[.26,.18],[.30,.25],[.27,.31],[.23,.34],[.24,.40],[.19,.48],[.15,.44],[.13,.36],[.09,.33]],
+  [[.24,.48],[.30,.46],[.35,.52],[.37,.61],[.35,.70],[.32,.81],[.29,.90],[.26,.81],[.24,.70],[.22,.58]],
+  [[.43,.24],[.48,.19],[.53,.21],[.55,.27],[.51,.31],[.47,.29]],
+  [[.46,.34],[.53,.31],[.60,.35],[.64,.43],[.61,.55],[.58,.66],[.55,.77],[.51,.73],[.49,.62],[.46,.52],[.43,.43]],
+  [[.54,.20],[.62,.16],[.70,.19],[.76,.17],[.85,.22],[.92,.28],[.89,.35],[.82,.38],[.77,.43],[.70,.40],[.66,.35],[.60,.33],[.56,.28]],
+  [[.62,.40],[.67,.43],[.70,.50],[.67,.57],[.64,.53]],
+  [[.74,.63],[.80,.62],[.85,.66],[.84,.73],[.80,.77],[.76,.73]],
+  [[.07,.12],[.12,.10],[.14,.14],[.12,.18],[.08,.17]]
+ ];
+ for(const poly of continents){earthCtx.beginPath();poly.forEach(([x,y],i)=>{const px=x*1024,py=y*512;i?earthCtx.lineTo(px,py):earthCtx.moveTo(px,py);});earthCtx.closePath();earthCtx.fillStyle='#6c9667';earthCtx.fill();earthCtx.strokeStyle='#9bb981';earthCtx.lineWidth=2;earthCtx.stroke();}
+ earthCtx.fillStyle='#d5e0dc';earthCtx.beginPath();earthCtx.moveTo(0,486);earthCtx.lineTo(110,475);earthCtx.lineTo(230,488);earthCtx.lineTo(360,478);earthCtx.lineTo(500,490);earthCtx.lineTo(650,477);earthCtx.lineTo(790,488);earthCtx.lineTo(920,476);earthCtx.lineTo(1024,485);earthCtx.lineTo(1024,512);earthCtx.lineTo(0,512);earthCtx.closePath();earthCtx.fill();
+ const earthMap=new THREE.CanvasTexture(earthCanvas);earthMap.colorSpace=THREE.SRGBColorSpace;
+ const earthGroup=new THREE.Group(),earthSurface=new THREE.Mesh(new THREE.SphereGeometry(1.78,64,48),new THREE.MeshStandardMaterial({color:0xffffff,map:earthMap,roughness:.88,metalness:0,emissive:0x071522,emissiveIntensity:.12}));earthGroup.add(earthSurface);
+ const atmosphere=new THREE.Mesh(new THREE.SphereGeometry(1.82,48,32),new THREE.MeshBasicMaterial({color:0x4ca9d4,transparent:true,opacity:.1,side:THREE.BackSide}));earthGroup.add(atmosphere);
+ const clouds=new THREE.Mesh(new THREE.SphereGeometry(1.805,36,24),new THREE.MeshStandardMaterial({color:0xe8f1eb,transparent:true,opacity:.1,roughness:1}));earthGroup.add(clouds);earthGroup.visible=apollo9;scene.add(earthGroup);
  const flagship=makeFlagship(mission);if(flagship){flagship.scale.setScalar(apollo9||apollo10||apollo11||artemis?1.9:1.35);scene.add(flagship);}
 
 
