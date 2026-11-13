@@ -332,7 +332,7 @@ export function mountMissionDemo(container,mission,ui){
  const earthGroup=new THREE.Group(),earthSurface=new THREE.Mesh(new THREE.SphereGeometry(1.78,64,48),new THREE.MeshStandardMaterial({color:0xffffff,map:earthMap,roughness:.88,metalness:0,emissive:0x071522,emissiveIntensity:.12}));earthGroup.add(earthSurface);
  const atmosphere=new THREE.Mesh(new THREE.SphereGeometry(1.82,48,32),new THREE.MeshBasicMaterial({color:0x4ca9d4,transparent:true,opacity:.1,side:THREE.BackSide}));earthGroup.add(atmosphere);
  const clouds=new THREE.Mesh(new THREE.SphereGeometry(1.805,36,24),new THREE.MeshStandardMaterial({color:0xe8f1eb,transparent:true,opacity:.1,roughness:1}));earthGroup.add(clouds);earthGroup.visible=apollo9;scene.add(earthGroup);
- const flagship=makeFlagship(mission);if(flagship){flagship.scale.setScalar(apollo9||apollo10||apollo11||artemis?1.9:1.35);scene.add(flagship);}
+ const flagship=makeFlagship(mission);if(flagship){flagship.scale.setScalar(apollo9?0.95:(apollo10||apollo11)?1.3:artemis?1.9:1.35);scene.add(flagship);}
 
 
  const resize=()=>{const w=container.clientWidth,h=container.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();};
