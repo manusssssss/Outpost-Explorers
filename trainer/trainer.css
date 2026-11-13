@@ -61,3 +61,22 @@ h1,h2,.destinations b,.inspect b{font-family:var(--trainer-font)}
 /* Give the mission picker its own scroll space on short landscape screens. */
 @media(max-height:780px){.expedition{min-height:0}.welcome{top:76px;bottom:14px;transform:none;max-height:none;overflow-y:auto;overscroll-behavior:contain;padding-bottom:18px}.welcome:not([hidden])~.scene-tools,.welcome:not([hidden])~.scene-hint{display:none}}
 
+
+.online-toggle{position:absolute;z-index:32;top:98px;right:22px;border:1px solid #d7edb155;border-radius:10px;padding:11px 15px;background:#243b43;color:#f2f4e8;font-size:12px;font-weight:700;box-shadow:0 8px 24px #0005}
+.online-toggle:hover,.online-secondary:hover{background:#385348}
+.online-panel{position:absolute;z-index:31;top:148px;right:22px;width:min(350px,calc(100vw - 28px));max-height:calc(100% - 170px);overflow:auto;padding:19px;border:1px solid #b8c8b555;border-radius:14px;background:#10212cf5;box-shadow:0 16px 45px #0009;overscroll-behavior:contain}
+.online-panel[hidden],#online-invite[hidden]{display:none}
+.online-panel-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.online-panel-heading .eyebrow{margin:0 0 5px;color:var(--lime)}
+.online-panel-heading h2{margin:0;font-size:22px}
+.online-close{border:0;background:transparent;color:#f3f4e8;font-size:24px;line-height:1;padding:0 4px}
+.online-intro{margin:10px 0 15px;font-size:12px;line-height:1.55}
+.online-label{display:block;margin:12px 0 5px;color:#cbd8d3;font-size:10px;font-weight:700;letter-spacing:.5px}
+.online-panel select,.online-panel input{width:100%;min-height:39px;border:1px solid #b8c8b555;border-radius:8px;padding:8px 10px;background:#203640;color:#f3f4e8;font-size:12px}
+.online-primary,.online-secondary{width:100%;margin-top:10px;border:1px solid #b8c8b555;border-radius:8px;padding:10px 12px;color:#f3f4e8;font-size:12px;font-weight:700}
+.online-primary{background:#365a48}.online-secondary{background:#243b43}
+.online-primary:disabled{opacity:.5;cursor:not-allowed}
+.online-join{margin-top:15px;padding-top:13px;border-top:1px solid #ffffff24}
+.online-status{margin:13px 0 0;padding:9px 10px;border-radius:8px;background:#203640;color:var(--lime);font-size:11px;line-height:1.5}
+.online-footnote{margin:10px 0 0;font-size:9px;line-height:1.5;color:#aebdc0}
+@media(max-width:600px){.online-toggle{top:78px;right:12px;padding:9px 11px;font-size:10px}.online-panel{top:124px;right:12px;max-height:calc(100% - 140px);padding:15px}.online-panel-heading h2{font-size:19px}}
