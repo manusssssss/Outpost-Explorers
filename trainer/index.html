@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0d1a23">
   <meta name="description" content="Explore Moon and Mars outposts, walk with two astronauts, drive the rover, and solve science missions together.">
   <title>Moon & Mars Mission Trainer | Outpost Explorers</title>
-  <link rel="stylesheet" href="trainer.css?v=online-crew-20261113b">
+  <link rel="stylesheet" href="trainer.css?v=interior-realism-20261113c">
 
 </head>
 <body>
@@ -16,22 +16,31 @@
     <a href="../#outpost" target="_top" class="brand" aria-label="Junior Astronaut Mission Trainer home">✳ <span>JUNIOR ASTRONAUT<small>MISSION TRAINER · EXPLORATION LAB</small></span></a>
     <span id="location">MISSION PREPARATION</span>
   </header>
+
   <button id="online-toggle" class="online-toggle" type="button" aria-expanded="false" aria-controls="online-panel">Connect crew</button>
   <aside id="online-panel" class="online-panel" aria-label="Online crew connection" hidden>
     <div class="online-panel-heading"><div><p class="eyebrow">ONLINE CREW</p><h2>Invite a crew mate</h2></div><button id="online-close" class="online-close" type="button" aria-label="Close online crew panel">×</button></div>
     <p class="online-intro">Create a private invite link for one crew mate. Keep this page open until they join. If connecting stalls, retry; some school, work, or mobile networks block direct browser links.</p>
     <label class="online-label" for="online-mission">Choose the mission</label>
     <select id="online-mission">
-      <option value="Moon|shackleton">Moon · Shackleton Rim Link</option><option value="Moon|haworth">Moon · Haworth Cold-Trap Route</option>
-      <option value="Moon|faustini">Moon · Faustini Shadow Survey</option><option value="Moon|cabeus">Moon · Cabeus Volatile Search</option>
-      <option value="Mars|jezero">Mars · Jezero Delta Archive</option><option value="Mars|utopia">Mars · Utopia Ice Map</option>
-      <option value="Mars|arcadia">Mars · Arcadia Ice Traverse</option><option value="Mars|gale">Mars · Gale Crater Mineral Lab</option>
+      <option value="Moon|shackleton">Moon · Shackleton Rim Link</option>
+      <option value="Moon|haworth">Moon · Haworth Cold-Trap Route</option>
+      <option value="Moon|faustini">Moon · Faustini Shadow Survey</option>
+      <option value="Moon|cabeus">Moon · Cabeus Volatile Search</option>
+      <option value="Mars|jezero">Mars · Jezero Delta Archive</option>
+      <option value="Mars|utopia">Mars · Utopia Ice Map</option>
+      <option value="Mars|arcadia">Mars · Arcadia Ice Traverse</option>
+      <option value="Mars|gale">Mars · Gale Crater Mineral Lab</option>
     </select>
     <label class="online-label" for="online-level">Mission level</label>
     <select id="online-level"><option value="beginner">Beginner</option><option value="pro">Pro</option></select>
     <button id="online-host" class="online-primary" type="button">Create invite link</button>
-    <div id="online-invite" hidden><label class="online-label" for="online-link">Invite link</label><input id="online-link" type="url" readonly>
-      <button id="online-copy" class="online-secondary" type="button">Copy invite link</button><button id="online-start" class="online-primary" type="button" disabled>Start mission together</button></div>
+    <div id="online-invite" hidden>
+      <label class="online-label" for="online-link">Invite link</label>
+      <input id="online-link" type="url" readonly>
+      <button id="online-copy" class="online-secondary" type="button">Copy invite link</button>
+      <button id="online-start" class="online-primary" type="button" disabled>Start mission together</button>
+    </div>
     <section class="crew-comms" aria-label="Crew chat and voice">
       <h3>Crew chat</h3>
       <div id="chat-log" class="chat-log" role="log" aria-live="polite"><p class="chat-empty">Messages appear here after a crew mate joins.</p></div>
@@ -45,12 +54,14 @@
       <p id="voice-status" class="voice-status" role="status" aria-live="polite">Connect to a crew mate before starting voice chat.</p>
       <audio id="remote-audio" controls autoplay playsinline aria-label="Crew mate voice audio" hidden></audio>
     </section>
-    <div class="online-join"><label class="online-label" for="online-code">Or paste a friend’s invite link or code</label>
-      <input id="online-code" type="text" autocomplete="off" placeholder="Paste invite link or code"><button id="online-join" class="online-secondary" type="button">Join session</button></div>
+    <div class="online-join">
+      <label class="online-label" for="online-code">Or paste a friend’s invite link or code</label>
+      <input id="online-code" type="text" autocomplete="off" placeholder="Paste invite link or code">
+      <button id="online-join" class="online-secondary" type="button">Join session</button>
+    </div>
     <p id="online-status" class="online-status" role="status" aria-live="polite">Not connected yet</p>
-    <p class="online-footnote">This invite connects two browsers and shares mission selection. Player movement and mission progress still run separately on each device.</p>
+    <p class="online-footnote">A direct invite connects two browsers and shares the mission selection. Player movement and mission progress still run separately on each device.</p>
   </aside>
-
 
   <section class="welcome" id="welcome">
     <p class="eyebrow">SPACE SCIENCE FOR YOUNG EXPLORERS · AGES 7–12</p>
@@ -71,7 +82,7 @@
       <button data-destination="Mars" data-region="gale"><span>◉</span><b>Mars · Gale Crater Mineral Lab</b><small>Study layered rocks and a long record of environmental change.</small></button>
     </div>
     <div class="welcome-note"><b>Two-player local co-op · one shared screen</b><br>Player 1 is the Engineer (W/A/S/D). Player 2 is the Scientist (arrow keys). Use the crew button to switch viewpoint. <br><b>Choose a science lead, not a guaranteed water source.</b><br>Site rings weigh possible ice or water-shaped minerals alongside light, route safety, and signal access. Orbital clues need ground checks before a crew could count on water. These are training locations, not selected bases.</div>
-    <details class="source-drawer"><summary>Where the science comes from</summary><p>NASA and partner-agency references guide the lessons. The 3D rover terrain is an illustrative training scene, not a mapped landing site. The orbiting Moon uses LROC colour and LOLA elevation maps; NASA Mars Trek is linked for real mapped Mars terrain. Game supplies are simplified teaching units.</p><p><a href="https://science.nasa.gov/moon/facts/" target="_blank" rel="noopener">NASA: The Moon has no permanent dark side ↗</a><br><a href="https://science.nasa.gov/resource/shackleton-craters-illuminated-rim-shadowed-interior/" target="_blank" rel="noopener">NASA: Shackleton’s bright rim beside shadowed ground ↗</a><br><a href="https://science.nasa.gov/solar-system/moon/nasas-lro-lunar-ice-deposits-are-widespread/" target="_blank" rel="noopener">NASA: Ice indicators in several permanently shadowed craters ↗</a><br><a href="https://science.nasa.gov/resource/perseverance-explores-the-jezero-crater-delta/" target="_blank" rel="noopener">NASA: Jezero’s ancient river delta ↗</a><br><a href="https://science.nasa.gov/resource/location-of-large-subsurface-water-ice-deposit-in-utopia-planitia-mars/" target="_blank" rel="noopener">NASA: Radar-mapped ice deposit in Utopia Planitia ↗</a><br><a href="https://science.nasa.gov/resource/arcadia-planitia/" target="_blank" rel="noopener">NASA: Arcadia Planitia and possible ground ice ↗</a><br><a href="https://science.nasa.gov/mission/lcross/" target="_blank" rel="noopener">NASA: LCROSS Cabeus crater water evidence ↗</a><br><a href="https://science.nasa.gov/resource/sedimentation-and-erosion-in-gale-crater-mars/" target="_blank" rel="noopener">NASA: Gale Crater sediment layers ↗</a><br><a href="https://www.spaceappschallenge.org/2026/challenges/junior-astronaut-mission-trainer/" target="_blank" rel="noopener">Read the NASA Space Apps challenge brief ↗</a></p><p>This independent educational project is not affiliated with or endorsed by NASA.</p><p class="asset-credit">Astronaut: “Astronaut by Jungle Jim,” CC BY 4.0, rigged and animated with Mixamo. <a href="https://sketchfab.com/3d-models/astronaut-by-jungle-jim-c775a977606a4e4e990afe783c6bc845" target="_blank" rel="noopener">Original model ↗</a> · <a href="https://www.mixamo.com/" target="_blank" rel="noopener">Mixamo animation service ↗</a><br>Pressurized rover and habitat demonstrator: NASA Langley concept models, shown here as educational concepts and recoloured without NASA marks. This independent project is not endorsed by NASA. <a href="https://science.nasa.gov/3d-resources/space-exploration-vehicle/" target="_blank" rel="noopener">Space Exploration Vehicle ↗</a> · <a href="https://science.nasa.gov/3d-resources/habitat-demonstration-unit/" target="_blank" rel="noopener">Habitat Demonstration Unit ↗</a><br></p></details>
+    <details class="source-drawer"><summary>Where the science comes from</summary><p>NASA and partner-agency references guide the lessons. The 3D rover terrain is an illustrative training scene, not a mapped landing site. The orbiting Moon uses LROC colour and LOLA elevation maps; NASA Mars Trek is linked for real mapped Mars terrain. Game supplies are simplified teaching units.</p><p><a href="https://science.nasa.gov/moon/facts/" target="_blank" rel="noopener">NASA: The Moon has no permanent dark side ↗</a><br><a href="https://science.nasa.gov/resource/shackleton-craters-illuminated-rim-shadowed-interior/" target="_blank" rel="noopener">NASA: Shackleton’s bright rim beside shadowed ground ↗</a><br><a href="https://science.nasa.gov/solar-system/moon/nasas-lro-lunar-ice-deposits-are-widespread/" target="_blank" rel="noopener">NASA: Ice indicators in several permanently shadowed craters ↗</a><br><a href="https://science.nasa.gov/resource/perseverance-explores-the-jezero-crater-delta/" target="_blank" rel="noopener">NASA: Jezero’s ancient river delta ↗</a><br><a href="https://science.nasa.gov/resource/location-of-large-subsurface-water-ice-deposit-in-utopia-planitia-mars/" target="_blank" rel="noopener">NASA: Radar-mapped ice deposit in Utopia Planitia ↗</a><br><a href="https://science.nasa.gov/resource/arcadia-planitia/" target="_blank" rel="noopener">NASA: Arcadia Planitia and possible ground ice ↗</a><br><a href="https://science.nasa.gov/mission/lcross/" target="_blank" rel="noopener">NASA: LCROSS Cabeus crater water evidence ↗</a><br><a href="https://science.nasa.gov/resource/sedimentation-and-erosion-in-gale-crater-mars/" target="_blank" rel="noopener">NASA: Gale Crater sediment layers ↗</a><br><a href="https://www.spaceappschallenge.org/2026/challenges/junior-astronaut-mission-trainer/" target="_blank" rel="noopener">Read the NASA Space Apps challenge brief ↗</a></p><p>This independent educational project is not affiliated with or endorsed by NASA.</p><p class="asset-credit">Astronaut: “Astronaut by Jungle Jim,” CC BY 4.0, rigged and animated with Mixamo. <a href="https://sketchfab.com/3d-models/astronaut-by-jungle-jim-c775a977606a4e4e990afe783c6bc845" target="_blank" rel="noopener">Original model ↗</a> · <a href="https://www.mixamo.com/" target="_blank" rel="noopener">Mixamo animation service ↗</a><br>Benchtop centrifuge: Innerscene original model, CC0, enlarged to 20.5 inches and placed on the workbench. <a href="https://www.innerscene.com/tools/library/3d-parts/centrifuge-99807ab5" target="_blank" rel="noopener">Model and license details ↗</a><br>Pressurized rover and habitat demonstrator: NASA Langley concept models, shown here as educational concepts and recoloured without NASA marks. This independent project is not endorsed by NASA. <a href="https://science.nasa.gov/3d-resources/space-exploration-vehicle/" target="_blank" rel="noopener">Space Exploration Vehicle ↗</a> · <a href="https://science.nasa.gov/3d-resources/habitat-demonstration-unit/" target="_blank" rel="noopener">Habitat Demonstration Unit ↗</a><br></p></details>
   </section>
 
   <aside id="mission-panel" class="mission-panel" hidden>
@@ -124,7 +135,9 @@ if (location.protocol === 'file:') {
   }, 12000);
 }
 </script>
+<script src="./realtime-config.js?v=relay-config-20261113b"></script>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js" crossorigin="anonymous"></script>
-<script type="module" src="./trainer.js?v=crew-lab-missions-20261113i"></script>
-<script type="module" src="./online-coop.js?v=invite-lobby-20261113d"></script>
+<script type="module" src="./trainer.js?v=crew-lab-missions-20261113j"></script>
+<script type="module" src="./online-coop.js?v=invite-lobby-20261113e"></script>
 </body></html>
+
