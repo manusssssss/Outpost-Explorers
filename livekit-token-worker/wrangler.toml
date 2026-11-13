@@ -5,3 +5,6 @@ compatibility_date = "2026-11-13"
 [vars]
 LIVEKIT_ALLOWED_ORIGIN = "https://manusssssss.github.io"
 
+
+[secrets]
+required = ["LIVEKIT_API_KEY", "LIVEKIT_API_SECRET"]
