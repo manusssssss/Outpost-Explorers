@@ -41,36 +41,38 @@ function missionSteps(m){
   ['Land and explore','Armstrong and Aldrin explored the surface while Collins remained in orbit.'],
   ['Return to Earth','The crew reunited in orbit and returned home with lunar samples.']
  ];
- const type=m.type.toLowerCase(),world=m.world;
+ const type=m.type.toLowerCase(),world=m.world,planned=m.status==='Planned';
+ const missionStage=[planned?'Planned objective':m.status==='Unsuccessful'?'Mission outcome':'Mission record',m.summary];
+ const detailStage=[planned?'Science this mission may investigate':'Discovery or mission detail',m.fact];
  if(/sample return/.test(type))return [
-  ['Travel to '+world,'The spacecraft makes its journey to the target world.'],
-  ['Collect material','A sampling system gathers material for closer study.'],
-  ['Launch the sample','A return vehicle carries the collected material away.'],
-  ['Study the result','Returned samples can be examined with laboratory instruments.']
+  ['Journey to '+world,planned?'Illustrative route for the announced sample-return goal.':'A simplified view of a spacecraft journey to the target world.'],
+  ['Sampling sequence','See how a mission can collect, protect and prepare material for return.'],
+  missionStage,detailStage
  ];
  if(/rover/.test(type))return [
-  ['Approach the surface','The spacecraft arrives at its destination.'],
-  ['Land and deploy','A landing system places the rover on the ground.'],
-  ['Explore the terrain','The rover moves between points of scientific interest.'],
-  ['Examine the target','Onboard instruments inspect rocks, soil or other materials.']
+  ['Approach '+world,'A simplified view of the journey to the mission destination.'],
+  ['Rover operations','The model rover is shown travelling to a point of scientific interest.'],
+  missionStage,detailStage
  ];
- if(/lander|impactor/.test(type))return [
-  ['Approach the target','The spacecraft lines up with its destination.'],
-  ['Descend to the surface','The vehicle follows its planned landing or impact path.'],
-  ['Reach the target','The surface event provides the mission’s key observation.'],
-  ['Send findings','The spacecraft or a relay sends results to Earth.']
+ if(/lander|impactor|precision land/.test(type))return [
+  ['Approach the target','The scene illustrates a spacecraft closing in on its destination.'],
+  [/impactor/.test(type)?'Impact experiment':'Landing sequence','A simplified model of the surface operation; the mission record below explains its actual result.'],
+  missionStage,detailStage
  ];
  if(/orbiter|flyby|orbit/.test(type))return [
-  ['Cruise through space','The spacecraft follows its interplanetary route.'],
-  ['Reach '+world,'The vehicle passes the world or enters an orbit around it.'],
-  ['Observe the world','Cameras and instruments collect images and measurements.'],
-  ['Transmit the data','The mission sends its observations to Earth.']
+  ['Cruise through space','A simplified route toward '+world+' begins the mission sequence.'],
+  [/flyby/.test(type)?'Pass the target':'Enter or follow an orbit','The spacecraft model follows a path around or past the target world.'],
+  missionStage,detailStage
+ ];
+ if(/programme|program|series|mission/.test(type))return [
+  ['Explore the mission family','This atlas entry may group related spacecraft or attempts.'],
+  ['Compare the mission goals','The illustration uses a general spacecraft to help picture the exploration task.'],
+  missionStage,detailStage
  ];
  return [
-  ['Begin the journey','The mission launches toward '+world+'.'],
-  ['Reach the mission target','The spacecraft begins its planned exploration work.'],
-  ['Carry out the science','Instruments collect observations connected to the mission goal.'],
-  ['Share the results','The mission sends information back for scientists to study.']
+  ['Begin the '+world+' mission','A simplified view of the journey and exploration setting.'],
+  ['Explore the mission activity','The model shows one possible way the mission type can investigate its target.'],
+  missionStage,detailStage
  ];
 }
 
