@@ -41,19 +41,14 @@
       <button id="online-copy" class="online-secondary" type="button">Copy invite link</button>
       <button id="online-start" class="online-primary" type="button" disabled>Start mission together</button>
     </div>
-    <section class="crew-comms" aria-label="Crew chat and voice">
+    <section class="crew-comms" aria-label="Crew text chat">
       <h3>Crew chat</h3>
       <div id="chat-log" class="chat-log" role="log" aria-live="polite"><p class="chat-empty">Messages appear here after a crew mate joins.</p></div>
       <form id="chat-form" class="chat-form">
         <label class="online-label" for="chat-input">Message your crew mate</label>
         <div class="chat-compose"><input id="chat-input" type="text" maxlength="400" autocomplete="off" placeholder="Write a short message" disabled><button id="chat-send" class="online-secondary" type="submit" disabled>Send</button></div>
       </form>
-      <h3>Voice chat</h3>
-      <button id="voice-toggle" class="online-secondary" type="button" disabled>Enable microphone</button>
-      <button id="voice-end" class="online-secondary" type="button" disabled>End voice chat</button>
-      <button id="voice-play" class="online-secondary" type="button" disabled>Play crew audio</button>
-      <p id="voice-status" class="voice-status" role="status" aria-live="polite">Connect to a crew mate before starting voice chat.</p>
-      <audio id="remote-audio" controls autoplay playsinline aria-label="Crew mate voice audio" hidden></audio>
+      <p class="voice-status" role="status">Use text chat to coordinate. Live voice is off for now because browser audio was unreliable across networks. The site will not request microphone access.</p>
     </section>
     <div class="online-join">
       <label class="online-label" for="online-code">Or paste a friend’s invite link or code</label>
@@ -135,7 +130,7 @@ if (location.protocol === 'file:') {
 }
 </script>
 <script src="./room-config.js?v=cloudflare-room-20261113a"></script>
-<script type="module" src="./trainer.js?v=solid-world-room-relay-20261113b"></script>
-<script type="module" src="./online-coop.js?v=cloudflare-room-20261113b"></script>
+<script type="module" src="./trainer.js?v=indoor-fpp-free-walk-20261113a"></script>
+<script type="module" src="./online-coop.js?v=text-chat-only-20261113a"></script>
 </body></html>
 
