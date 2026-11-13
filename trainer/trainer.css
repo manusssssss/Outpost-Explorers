@@ -147,3 +147,5 @@ canvas.look-enabled{cursor:crosshair;touch-action:none}
  .scene-tools{bottom:calc(10px + env(safe-area-inset-bottom,0px) + clamp(86px,18vh,120px))}
  .mission-panel,.mission-panel.interior{bottom:calc(82px + env(safe-area-inset-bottom,0px) + clamp(86px,18vh,120px))}
 }
+
+.field-actions{position:absolute;right:24px;bottom:110px;z-index:3;display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:360px;background:#10212cef;border:1px solid #ffffff33;border-radius:9px;padding:8px;font-size:11px}.field-actions[hidden]{display:none}.field-actions button{border:1px solid #b4d6ce55;border-radius:6px;padding:8px;background:#29404a}.field-actions span{width:100%;line-height:1.4;color:#deebd4}@media(max-width:850px){.field-actions{right:10px;bottom:165px;max-width:235px;font-size:10px}.field-actions button{padding:6px}}
