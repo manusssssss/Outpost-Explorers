@@ -26,6 +26,15 @@ let joinAttempt = 0;
 let lastPeerErrorAt = 0;
 let lastConnectionIssue = '';
 let lastConnectionIssueAt = 0;
+let realtimeClient = null;
+let realtimeChannel = null;
+let realtimeMode = false;
+let realtimeRoom = '';
+let realtimeReady = false;
+let realtimeRemoteReady = false;
+let realtimeHelloTimer = 0;
+let realtimeClientId = '';
+let realtimeGuestId = '';
 
 function setStatus(message) {
   status.textContent = message;
@@ -51,7 +60,21 @@ function selection() {
 }
 
 function send(message) {
+  if (realtimeModeConnected()) {
+    realtimeChannel.send({ type: 'broadcast', event: 'message', payload: { ...message, _sender: realtimeClientId } }).catch(() => {
+      setStatus('The relay briefly lost connection. Keep both pages open while it reconnects.');
+    });
+    return;
+  }
   if (connection?.open) connection.send(message);
+}
+
+function realtimeModeConnected() {
+  return Boolean(realtimeReady && realtimeChannel);
+}
+
+function isConnected() {
+  return realtimeModeConnected() ? realtimeRemoteReady : Boolean(connection?.open);
 }
 
 function setSelection(value) {
@@ -69,13 +92,15 @@ function updateRoleControls() {
   const isGuest = role === 'guest';
   mission.disabled = isGuest;
   level.disabled = isGuest;
-  hostButton.disabled = isGuest || Boolean(peer);
-  startButton.disabled = isGuest || !connection?.open;
-  const connected = Boolean(connection?.open);
+  hostButton.disabled = isGuest || Boolean(peer) || realtimeMode;
+  const connected = isConnected();
+  startButton.disabled = !connected;
+  startButton.textContent = isGuest ? 'Request mission start' : 'Start mission together';
   chatInput.disabled = !connected;
   chatSend.disabled = !connected;
-  voiceButton.disabled = !connected;
-  voiceEndButton.disabled = !connected || !localStream;
+  voiceButton.disabled = !connected || realtimeModeConnected();
+  voiceEndButton.disabled = !connected || !localStream || realtimeModeConnected();
+  if (realtimeModeConnected()) voiceMessage('Mission data and text use the relay. Voice needs a separate media relay and is unavailable in this session.');
 }
 
 function showMessage(sender, text, own = false) {
@@ -122,7 +147,7 @@ function watchVoiceCall(call) {
 }
 
 function startVoiceCall() {
-  if (role !== 'host' || !localStream || !remoteVoiceReady || !connection?.open || activeCall) return;
+  if (role !== 'host' || !localStream || !remoteVoiceReady || !isConnected() || realtimeModeConnected() || activeCall) return;
   const call = peer.call(connection.peer, localStream);
   watchVoiceCall(call);
   voiceMessage('Calling your crew mate…');
@@ -175,16 +200,19 @@ function endVoice() {
 function sendChat(event) {
   event.preventDefault();
   const text = chatInput.value.trim().slice(0, 400);
-  if (!text || !connection?.open) return;
+  if (!text || !isConnected()) return;
   send({ type: 'chat', text, sender: role === 'host' ? 'Player 1 · Engineer' : 'Player 2 · Scientist' });
   showMessage('You', text, true);
   chatInput.value = '';
 }
 
-function inviteUrl(peerId) {
+function inviteUrl(peerId, transport = 'peer') {
   const url = new URL(location.href);
   url.search = '';
-  url.searchParams.set('join', peerId);
+  if (transport === 'relay') {
+    url.searchParams.set('room', peerId);
+    url.searchParams.set('transport', 'relay');
+  } else url.searchParams.set('join', peerId);
   return url.href;
 }
 
@@ -203,10 +231,26 @@ function startLocalMission(value) {
   setSelection(value);
   document.querySelector(`[data-level="${value.level}"]`)?.click();
   document.querySelector(`[data-destination="${value.world}"][data-region="${value.region}"]`)?.click();
+  window.dispatchEvent(new CustomEvent('outpost:online-role', { detail: { role: role === 'host' ? 1 : 2 } }));
+}
+
+function startMissionTogether() {
+  const value = selection();
+  if (role === 'guest') {
+    send({ type: 'mission-start-request' });
+    setStatus('Start request sent to the host. Your crew mate will start both explorers.');
+    return;
+  }
+  if (role !== 'host' || !isConnected()) return;
+  startLocalMission(value);
+  send({ type: 'mission-start', selection: value });
+  setStatus('Mission started on both devices. Player 1 is Engineer; Player 2 is Scientist.');
 }
 
 function handleMessage(message) {
   if (!message || typeof message !== 'object') return;
+  if (realtimeMode && message.recipient && message.recipient !== realtimeClientId) return;
+  if (realtimeMode && role === 'host' && realtimeGuestId && message._sender && message._sender !== realtimeGuestId) return;
   if (message.type === 'chat' && typeof message.text === 'string') {
     showMessage(message.sender || 'Crew mate', message.text);
   }
@@ -221,8 +265,21 @@ function handleMessage(message) {
     if (remoteVoiceReady && !localStream) voiceMessage('Your crew mate is ready for voice. Enable your microphone to join.');
   }
   if (message.type === 'hello' && role === 'host') {
+    if (realtimeMode) {
+      if (realtimeGuestId && realtimeGuestId !== message._sender) return;
+      realtimeGuestId = message._sender || '';
+      realtimeRemoteReady = true;
+      send({ type: 'hello-ack', recipient: realtimeGuestId });
+    }
     setStatus('Crew mate connected. Choose a mission and start together.');
     send({ type: 'mission-selection', selection: selection() });
+    updateRoleControls();
+  }
+  if (message.type === 'hello-ack' && role === 'guest' && realtimeMode) {
+    realtimeRemoteReady = true;
+    window.clearInterval(realtimeHelloTimer);
+    realtimeHelloTimer = 0;
+    setStatus('Connected through the relay. You are Player 2 · Scientist.');
     updateRoleControls();
   }
   if (message.type === 'mission-selection' && role === 'guest') {
@@ -238,6 +295,11 @@ function handleMessage(message) {
   if (message.type === 'ready' && role === 'host') {
     setStatus('Crew mate connected and ready. Choose a mission, then start together.');
   }
+  if (message.type === 'mission-start-request' && role === 'host') startMissionTogether();
+  if (message.type === 'trainer-state' && message.state) {
+    window.dispatchEvent(new CustomEvent('outpost:crew-state', { detail: message.state }));
+  }
+  if (message.action) window.dispatchEvent(new CustomEvent('outpost:crew-action', { detail: message }));
 }
 
 function attachConnection(conn) {
@@ -248,7 +310,9 @@ function attachConnection(conn) {
   connection = conn;
   connection.on('open', () => {
     lastConnectionIssue = '';
+    inviteBox.hidden = false;
     if (role === 'guest') {
+      inviteLink.value = location.href;
       connection.send({ type: 'hello' });
       setStatus('Connected. Waiting for the host to choose a mission.');
     } else {
@@ -313,7 +377,81 @@ function makePeer() {
   return peer;
 }
 
+function relayConfigured() {
+  const config = window.OUTPOST_REALTIME_CONFIG;
+  return Boolean(config?.url && config?.publishableKey);
+}
+
+async function connectRealtimeRoom(room, asHost) {
+  const config = window.OUTPOST_REALTIME_CONFIG;
+  if (!config?.url || !config?.publishableKey) return false;
+  try {
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+    realtimeMode = true;
+    realtimeRoom = room;
+    realtimeClientId = crypto.randomUUID();
+    realtimeGuestId = '';
+    realtimeReady = false;
+    realtimeRemoteReady = false;
+    realtimeClient = createClient(config.url, config.publishableKey, { realtime: { params: { eventsPerSecond: 20 } } });
+    realtimeChannel = realtimeClient.channel(`outpost-${room}`, { config: { private: false, broadcast: { ack: true, self: false } } });
+    realtimeChannel.on('broadcast', { event: 'message' }, ({ payload }) => handleMessage(payload));
+    realtimeChannel.subscribe(state => {
+      if (state === 'SUBSCRIBED') {
+        realtimeReady = true;
+        inviteBox.hidden = false;
+        if (asHost) {
+          inviteLink.value = inviteUrl(room, 'relay');
+          setStatus('Relay invite ready. Keep this page open while your crew mate joins.');
+          copyInvite();
+        } else {
+          inviteLink.value = location.href;
+          setStatus('Relay connected. Waiting for the host to accept your crew link…');
+          send({ type: 'hello' });
+          realtimeHelloTimer = window.setInterval(() => {
+            if (!realtimeRemoteReady) send({ type: 'hello' });
+          }, 1800);
+        }
+        updateRoleControls();
+      } else if (state === 'CHANNEL_ERROR' || state === 'TIMED_OUT' || state === 'CLOSED') {
+        realtimeReady = false;
+        realtimeRemoteReady = false;
+        setStatus('The relay service could not stay connected. Check its project URL and publishable key, then retry.');
+        updateRoleControls();
+      }
+    });
+    return true;
+  } catch (error) {
+    realtimeMode = false;
+    realtimeReady = false;
+    realtimeRemoteReady = false;
+    setStatus('The relay library could not load. Check internet access, then try again.');
+    return false;
+  }
+}
+
+async function createRealtimeInvite() {
+  role = 'host';
+  openPanel();
+  const room = crypto.randomUUID();
+  setStatus('Starting a relayed invite session…');
+  await connectRealtimeRoom(room, true);
+}
+
+async function joinRealtimeInvite(room) {
+  role = 'guest';
+  openPanel();
+  inviteBox.hidden = false;
+  inviteLink.value = location.href;
+  setStatus('Connecting to the relay and host…');
+  await connectRealtimeRoom(room, false);
+}
+
 function createInvite() {
+  if (relayConfigured()) {
+    createRealtimeInvite();
+    return;
+  }
   role = 'host';
   openPanel();
   const host = makePeer();
@@ -344,6 +482,14 @@ function peerIdFrom(value) {
 }
 
 function joinInvite(value) {
+  try {
+    const invite = new URL(value.trim(), location.href);
+    const room = invite.searchParams.get('room');
+    if (room) {
+      joinRealtimeInvite(room);
+      return;
+    }
+  } catch {}
   const id = peerIdFrom(value);
   if (!id) {
     setStatus('Paste an invite link or enter the host code first.');
@@ -351,9 +497,11 @@ function joinInvite(value) {
   }
   role = 'guest';
   openPanel();
+  inviteBox.hidden = false;
+  inviteLink.value = location.href;
   const guest = makePeer();
   if (!guest) return;
-  if (connection?.open) {
+  if (isConnected()) {
     setStatus('You are already connected to a crew mate.');
     return;
   }
@@ -361,10 +509,10 @@ function joinInvite(value) {
   updateRoleControls();
   const attempt = ++joinAttempt;
   const connect = () => {
-    if (attempt !== joinAttempt || connection?.open) return;
+    if (attempt !== joinAttempt || isConnected()) return;
     attachConnection(guest.connect(id, { reliable: true }));
     window.setTimeout(() => {
-      if (attempt === joinAttempt && !connection?.open && status.textContent === 'Connecting to the host…') {
+      if (attempt === joinAttempt && !isConnected() && status.textContent === 'Connecting to the host…') {
         setStatus('Still trying to reach the host. Keep both pages open; if this takes over 15 seconds, tap Join session again.');
       }
     }, 15000);
@@ -394,15 +542,20 @@ $('#online-code').addEventListener('keydown', event => {
 mission.addEventListener('change', () => send({ type: 'mission-selection', selection: selection() }));
 level.addEventListener('change', () => send({ type: 'mission-selection', selection: selection() }));
 startButton.addEventListener('click', () => {
-  if (!connection?.open || role !== 'host') return;
-  const value = selection();
-  startLocalMission(value);
-  send({ type: 'mission-start', selection: value });
-  setStatus('Mission started. Your crew mate has the same world and site selected.');
+  if (!isConnected()) return;
+  startMissionTogether();
 });
 
-const incomingInvite = new URLSearchParams(location.search).get('join');
-if (incomingInvite) joinInvite(incomingInvite);
+window.OutpostMultiplayer = {
+  role: () => role === 'host' ? 1 : role === 'guest' ? 2 : 0,
+  connected: isConnected,
+  sendState: state => send({ type: 'trainer-state', state }),
+  sendCommand: message => send(message)
+};
+
+const incomingParams = new URLSearchParams(location.search);
+if (incomingParams.get('room')) joinRealtimeInvite(incomingParams.get('room'));
+else if (incomingParams.get('join')) joinInvite(incomingParams.get('join'));
 
 window.addEventListener('pagehide', () => peer?.destroy());
 
