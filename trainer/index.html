@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0d1a23">
   <meta name="description" content="Explore Moon and Mars outposts, walk with two astronauts, drive the rover, and solve science missions together.">
   <title>Moon & Mars Mission Trainer | Outpost Explorers</title>
-  <link rel="stylesheet" href="trainer.css?v=mission-variety-20261114a">
+  <link rel="stylesheet" href="trainer.css?v=interior-visibility-20261114a">
 
 </head>
 <body>
@@ -104,7 +104,7 @@
   <button id="exit-lab" class="exit-lab" type="button" hidden>Leave field lab ↗</button>
   <div id="inspect" class="inspect" hidden><button id="inspect-close" aria-label="Close station information">×</button><b id="inspect-title"></b><p id="inspect-text"></p></div>
   <div id="field-actions" class="field-actions" hidden><button id="collect-rock" type="button">Collect nearby rock</button><button id="deliver-rock" type="button">Deliver to lab</button><span id="field-status" aria-live="polite">Explore craters for sample rocks.</span><span id="crater-info">Scaled training craters are inspired by NASA observations; their shapes and locations are illustrative.</span></div>
-  <div id="interior-actions" class="field-actions" hidden><button id="lab-work" type="button">Analyze sample</button><button id="compare-open" type="button">Compare samples</button><button id="farm-tend" type="button" hidden>Tend crops</button><button id="farm-water" type="button" hidden>Water crops</button><button id="farm-air" type="button" hidden>Adjust ventilation</button><span id="interior-status" aria-live="polite">Choose a duty.</span><div id="lab-levers" class="lab-levers" hidden aria-label="Laboratory levers"><button type="button" data-lab-lever="power" aria-pressed="false">INSTRUMENT POWER · OFF</button><button type="button" data-lab-lever="vent" aria-pressed="false">AIR FILTER · OFF</button><button type="button" data-lab-lever="glovebox" aria-pressed="false">SAMPLE SEAL · OFF</button><button type="button" data-lab-lever="calibrate" aria-pressed="false">CALIBRATION · OFF</button></div></div>
+  <div id="interior-actions" class="field-actions" hidden><button id="interior-collapse" class="interior-collapse" type="button" aria-expanded="true">Hide controls</button><button id="lab-work" type="button">Analyze sample</button><button id="compare-open" type="button">Compare samples</button><button id="farm-tend" type="button" hidden>Tend crops</button><button id="farm-water" type="button" hidden>Water crops</button><button id="farm-air" type="button" hidden>Adjust ventilation</button><span id="interior-status" aria-live="polite">Choose a duty.</span><div id="lab-levers" class="lab-levers" hidden aria-label="Laboratory levers"><button type="button" data-lab-lever="power" aria-pressed="false">INSTRUMENT POWER · OFF</button><button type="button" data-lab-lever="vent" aria-pressed="false">AIR FILTER · OFF</button><button type="button" data-lab-lever="glovebox" aria-pressed="false">SAMPLE SEAL · OFF</button><button type="button" data-lab-lever="calibrate" aria-pressed="false">CALIBRATION · OFF</button></div></div>
   <aside id="airlock-controls" class="airlock-controls" aria-label="Airlock controls" hidden><strong id="airlock-title">AIRLOCK</strong><p id="airlock-status" aria-live="polite"></p><p>Training simulation: only one hatch opens at a time. Pressure and oxygen are illustrative, not real life-support controls.</p><button id="airlock-cycle" type="button">Check oxygen and adjust pressure</button><button id="airlock-door" type="button" disabled>Open inner hatch and enter</button><button id="airlock-cancel" type="button">Go back</button></aside>
   <aside id="comparison-panel" class="comparison-panel" aria-label="Sample comparison" hidden>
     <button id="comparison-close" class="comparison-close" type="button" aria-label="Close sample comparison">×</button>
@@ -145,7 +145,7 @@ if (location.protocol === 'file:') {
 }
 </script>
 <script src="./room-config.js?v=cloudflare-room-20261113a"></script>
-<script type="module" src="./trainer.js?v=mission-variety-20261114a"></script>
+<script type="module" src="./trainer.js?v=interior-visibility-20261114a"></script>
 <script type="module" src="./online-coop.js?v=mission-variety-sync-20261114a"></script>
 </body></html>
 
