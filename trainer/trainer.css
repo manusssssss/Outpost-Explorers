@@ -175,3 +175,8 @@ canvas.look-enabled{cursor:crosshair;touch-action:none}
 #field-actions .inspect b{font-size:16px;padding-right:30px}
 #field-actions .inspect p{font-size:12px;line-height:1.5}
 @media(max-width:850px){.expedition.panel-open #interior-actions,.expedition.panel-open #field-actions{visibility:hidden;pointer-events:none}}
+
+/* Keep the crew connection button clear of comparison and room close buttons. */
+.online-toggle{top:22px;right:22px}
+.online-panel{top:72px;max-height:calc(100% - 90px)}
+@media(max-width:600px){.online-toggle{top:18px;right:12px}.online-panel{top:65px;max-height:calc(100% - 80px)}}
