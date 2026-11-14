@@ -196,3 +196,5 @@ canvas.look-enabled{cursor:crosshair;touch-action:none}
  .station-nav{top:112px}
  .supply-hud{top:220px}
 }
+
+.sound-settings{position:absolute;z-index:25;left:24px;bottom:68px;display:flex;align-items:center;gap:10px;padding:10px;background:#10232df5;border:1px solid #b8c8b555;border-radius:10px;box-shadow:0 8px 24px #0006}.sound-settings button{border:1px solid #ffffff44;border-radius:7px;background:#29404a;padding:8px}.sound-settings label{font-size:11px}.sound-settings input{width:100px;accent-color:#dbedb1}@media(pointer:coarse) and (max-width:1100px){.sound-settings{left:50%;transform:translateX(-50%);bottom:calc(65px + env(safe-area-inset-bottom,0px) + clamp(94px,20vw,138px))}}

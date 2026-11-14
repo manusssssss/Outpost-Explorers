@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0d1a23">
   <meta name="description" content="Explore Moon and Mars outposts, walk with two astronauts, drive the rover, and solve science missions together.">
   <title>Moon & Mars Mission Trainer | Outpost Explorers</title>
-  <link rel="stylesheet" href="trainer.css?v=crew-button-position-20261114">
+  <link rel="stylesheet" href="trainer.css?v=sound-20261114a">
 
 </head>
 <body>
@@ -116,7 +116,8 @@
     <p class="fine">A positive result is a simulated water-related indicator only. It does not prove usable water, ice or life. These readings are not real measurements.</p>
     <details class="source-drawer"><summary>See all 20 practice presets</summary><ol id="preset-list"></ol></details>
   </aside>
-  <div class="scene-tools"><button id="free-rover" type="button" hidden>Board / exit rover</button><button id="find-crew" type="button">Find astronaut</button><button id="recover-astronaut" type="button" hidden aria-label="Recover astronaut to mission starting position" title="Return your astronaut to the mission starting position">Recover astronaut</button><button id="crew-switch" type="button">Player 1 · Engineer</button><button id="view-mode" type="button" aria-pressed="false" disabled>View: Third-person</button><button id="reset-camera">Reset view ↻</button><label>Quality <select id="quality"><option value="balanced">Balanced</option><option value="low">Low</option><option value="high">High</option></select></label><button id="motion" aria-pressed="false">Motion: on</button></div>
+  <div class="scene-tools"><button id="free-rover" type="button" hidden>Board / exit rover</button><button id="find-crew" type="button">Find astronaut</button><button id="recover-astronaut" type="button" hidden aria-label="Recover astronaut to mission starting position" title="Return your astronaut to the mission starting position">Recover astronaut</button><button id="crew-switch" type="button">Player 1 · Engineer</button><button id="view-mode" type="button" aria-pressed="false" disabled>View: Third-person</button><button id="reset-camera">Reset view ↻</button><label>Quality <select id="quality"><option value="balanced">Balanced</option><option value="low">Low</option><option value="high">High</option></select></label><button id="motion" aria-pressed="false">Motion: on</button><button id="sound-toggle" type="button" aria-expanded="false" aria-controls="sound-settings">Sound</button></div>
+  <div id="sound-settings" class="sound-settings" aria-label="Sound settings" hidden><button id="sound-mute" type="button" aria-pressed="true">Sound: on</button><label for="sound-volume">Volume</label><input id="sound-volume" type="range" min="0" max="100" value="35"></div>
   <p class="scene-hint" id="hint">Drag to look · Scroll to zoom · Select a destination</p>
   <div id="drive-pad" class="drive-pad" hidden aria-label="Explorer and rover controls"><button id="vehicle-mode" type="button">Board rover</button><button data-key="ArrowUp" aria-label="Move forward">↑</button><div><button data-key="ArrowLeft" aria-label="Turn left">←</button><button data-key="ArrowDown" aria-label="Move backward">↓</button><button data-key="ArrowRight" aria-label="Turn right">→</button></div><button id="recover">Reset rover</button><span id="distance"></span></div>
   <div id="mobile-controls" class="mobile-controls" hidden><div id="move-stick" class="touch-stick" aria-label="Movement joystick"><span class="stick-label">MOVE</span><span class="stick-knob"></span></div><div class="mobile-touch-actions"><button id="mobile-vehicle" type="button" hidden>Board rover</button><button id="mobile-jump" type="button" hidden>Jump</button></div><div id="look-stick" class="touch-stick look-stick" aria-label="Camera joystick"><span class="stick-label">LOOK</span><span class="stick-knob"></span></div></div><aside id="mission-toast" class="mission-toast" aria-live="polite" hidden><button id="mission-toast-close" type="button" aria-label="Dismiss mission prompt">×</button><strong id="mobile-objective"></strong><span id="mobile-brief"></span></aside><aside id="rotate-hint" class="rotate-hint" hidden><b>↻</b> Turn your phone sideways for a clearer view</aside>
@@ -144,8 +145,9 @@ if (location.protocol === 'file:') {
   }, 12000);
 }
 </script>
+<script src="./trainer-sound.js?v=sound-20261114a"></script>
 <script src="./room-config.js?v=cloudflare-room-20261113a"></script>
-<script type="module" src="./trainer.js?v=astronaut-recovery-20261114a"></script>
+<script type="module" src="./trainer.js?v=sound-20261114a"></script>
 <script type="module" src="./online-coop.js?v=mission-variety-sync-20261114a"></script>
 </body></html>
 
