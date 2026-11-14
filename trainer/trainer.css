@@ -184,3 +184,15 @@ canvas.look-enabled{cursor:crosshair;touch-action:none}
 /* Keep recovery available even when the screen is narrow. */
 .scene-tools{max-width:calc(100vw - 48px);flex-wrap:wrap}
 @media(pointer:coarse) and (max-width:1100px){.scene-tools{width:max-content;max-width:calc(100vw - 16px)}}
+
+/* Leave room for the parent website's Back to website button. */
+.online-toggle{top:70px;right:22px}
+.online-panel{top:120px;max-height:calc(100% - 138px)}
+@media(max-width:600px){
+ .online-toggle{top:66px;right:12px}
+ .online-panel{top:110px;max-height:calc(100% - 125px)}
+}
+@media(max-width:540px){
+ .station-nav{top:112px}
+ .supply-hud{top:220px}
+}
