@@ -88,6 +88,7 @@ async function copyInvite() {
 }
 function startLocalMission(value) {
   setSelection(value);
+  window.OutpostTrainer?.setNextScenario(value.scenario);
   document.querySelector(`[data-level="${value.level}"]`)?.click();
   document.querySelector(`[data-destination="${value.world}"][data-region="${value.region}"]`)?.click();
   window.dispatchEvent(new CustomEvent('outpost:online-role', { detail: { role: role === 'host' ? 1 : 2 } }));
@@ -100,6 +101,7 @@ function startMissionTogether() {
     return;
   }
   if (role !== 'host' || !connected()) return;
+  value.scenario=window.OutpostTrainer?.nextScenario() ?? 0;
   startLocalMission(value);
   missionStarted = true;
   panel.hidden = true;
@@ -137,7 +139,7 @@ function handleRoomMessage(message) {
   if (message.type === 'chat' && typeof message.text === 'string') showMessage(message.sender || 'Crew mate', message.text);
   if (message.type === 'hello' && role === 'host') {
     const snapshot = missionStarted ? window.OutpostTrainer?.getSnapshot() : null;
-    if (snapshot) send({ type: 'mission-resume', selection: { world: snapshot.world, region: snapshot.region, level: snapshot.level }, snapshot });
+    if (snapshot) send({ type: 'mission-resume', selection: { world: snapshot.world, region: snapshot.region, level: snapshot.level, scenario: snapshot.scenarioId }, snapshot });
     else send({ type: 'mission-selection', selection: selection() });
     send({ type: 'ready' });
   }
