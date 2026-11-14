@@ -24,23 +24,70 @@ const messages = [
   { label: 'YOUR EXPEDITION', sentence: 'Choose a world, explore a site and see what your crew can learn.' }
 ];
 
+// Three short lines preserve the original headline layout. The last line is highlighted.
+const headlines = [
+ ['Next stop.','The Moon.','Or maybe Mars.'],
+ ['Look up.','Dream big.','Explore farther.'],
+ ['Small steps.','Big questions.','New worlds.'],
+ ['Two worlds.','One crew.','Endless curiosity.'],
+ ['Find clues.','Ask questions.','Think like a scientist.'],
+ ['Your mission.','Your choices.','Your discovery.'],
+ ['Beyond Earth.','Across space.','Into discovery.'],
+ ['Meet a rover.','Choose a route.','Explore Mars.'],
+ ['A little dust.','A big mystery.','A world to explore.'],
+ ['Light and shadow.','Rocks and ice.','What will you find?'],
+ ['Power the base.','Protect the crew.','Keep exploring.'],
+ ['Look from orbit.','Choose a site.','Make a plan.'],
+ ['Plant a seed.','Save some water.','Grow together.'],
+ ['Every sample.','Every question.','A new clue.'],
+ ['The Moon is near.','The challenge is big.','Are you ready?'],
+ ['Mars is calling.','Pack your curiosity.','Let’s explore.'],
+ ['One outpost.','Many systems.','One brave crew.'],
+ ['Explore a crater.','Study a rock.','Share the story.'],
+ ['Bright ridges.','Cold shadows.','Careful choices.'],
+ ['A rover rolls.','A scientist wonders.','A mission begins.'],
+ ['Think together.','Solve together.','Discover together.'],
+ ['Look for water.','Test the clues.','Follow the evidence.'],
+ ['Meet the missions.','Learn their stories.','Imagine what’s next.'],
+ ['From Earth.','To the Moon.','And beyond.'],
+ ['A world of questions.','A crew of explorers.','A place to begin.'],
+ ['A little power.','A careful plan.','A giant adventure.'],
+ ['Look closer.','Wonder more.','Keep exploring.'],
+ ['Make a plan.','Try an idea.','Learn from it.'],
+ ['Rocks have stories.','Missions find clues.','You connect them.'],
+ ['New horizons.','Real questions.','Your next mission.'],
+ ['Build a home.','Care for a crew.','Explore a world.'],
+ ['Follow the light.','Plan for shadow.','Protect your crew.'],
+ ['Science starts.','With a question.','What is yours?'],
+ ['Explore the past.','Imagine the future.','Start today.'],
+ ['Ready, explorer?','Choose your world.','Begin your mission.']
+];
+
 const label = document.querySelector('#hero-tagline');
 const sentence = document.querySelector('#hero-message');
+const headline = document.querySelector('#hero-headline');
 
 if (label && sentence) {
   let index = 0;
   let timer;
 
   const display = () => {
-    label.textContent = messages[index].label;
-    sentence.textContent = messages[index].sentence;
+    const message = messages[index % messages.length];
+    label.textContent = message.label;
+    sentence.textContent = message.sentence;
+    if (headline) {
+      const [first, second, last] = headlines[index];
+      const highlight = document.createElement('em');
+      highlight.textContent = last;
+      headline.replaceChildren(document.createTextNode(first), document.createElement('br'), document.createTextNode(second), document.createElement('br'), highlight);
+    }
   };
 
   const scheduleNext = () => {
     clearTimeout(timer);
     if (document.hidden) return;
     timer = setTimeout(() => {
-      index = (index + 1) % messages.length;
+      index = (index + 1) % headlines.length;
       display();
       scheduleNext();
     }, 45000);

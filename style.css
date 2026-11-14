@@ -22,3 +22,5 @@ dialog.mission-dialog-expanded{width:min(960px,calc(100% - 28px));max-width:960p
 
 .featured-study{padding:.2rem .42rem;border:1px solid rgba(203,183,129,.44);border-radius:999px;color:#ddc98f;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase}
 .mission-meta{row-gap:.45rem}
+
+.quiz-level{font-size:10px;letter-spacing:.08em;color:#526b50;margin:14px 0 0}.quiz-reset{display:block;clear:both;background:none;border:0;padding:18px 0 3px;color:#526b50;text-decoration:underline;font-size:11px}.quiz-reset:focus-visible{outline:3px solid var(--orange)}

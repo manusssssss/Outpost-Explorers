@@ -1,3 +1,4 @@
+import {questions} from './quiz-questions.js?v=100-mission-quiz-20261114a';
 import {missions,checked,sources} from './missions.js';
 import {mountMissionDemo} from './mission-demo.js?v=12';
 const $=s=>document.querySelector(s);
@@ -95,24 +96,21 @@ function renderSaved(){
  $('#saved-missions').innerHTML=saved.size?'<div class="saved-list">'+missions.filter(m=>saved.has(m.id)).map(m=>'<div class="saved-item"><button data-open="'+m.id+'">'+escape(m.name)+'<small>'+m.world+' · '+escape(m.agency)+'</small></button><button data-save="'+m.id+'" aria-label="Remove '+escape(m.name)+' from notebook">×</button></div>').join('')+'</div>':'<div class="empty">Your notebook is ready for its first discovery. Tap ◇ on any mission to save it here.</div>';
  bindCards($('#saved-missions'));
 }
-const questions=[
- {q:'What does an airlock help astronauts do?',a:['Go outside without losing all the habitat’s air','Make the Moon’s gravity stronger','Turn dust into drinking water'],right:0,why:'An airlock is a small sealed chamber. Its pressure can change without emptying the main habitat.'},
- {q:'Which mission first put people on the Moon?',a:['Chandrayaan-3','Apollo 11','Mariner 4'],right:1,why:'Apollo 11 landed in 1969. Chandrayaan-3 was robotic, and Mariner 4 flew past Mars.'},
- {q:'Why do Mars rovers need help from onboard software?',a:['They cannot send any pictures','Mars has too much oxygen','Radio messages take minutes to cross space'],right:2,why:'Signals travel at the speed of light, but the distance is huge. A rover cannot wait for Earth to steer around every rock.'},
- {q:'Does a water-related measurement prove that life exists?',a:['Yes, always','No. Scientists need more evidence','Only when a rover takes the measurement'],right:1,why:'Water can be important for life, but detecting water or a water-related mineral is not the same as detecting life.'},
- {q:'Which pair is working together on Chandrayaan-5 / LUPEX?',a:['ISRO and JAXA','Apollo and Viking','Sojourner and the Sun'],right:0,why:'India and Japan are collaborating on a mission to investigate the Moon’s polar resources.'}
-];
-let qi=0,score=0,answered=false;
+const quizKey='outpost-mission-quiz-100-v1';
+const savedQuiz=read(quizKey,{});
+let qi=Number.isInteger(savedQuiz.index)&&savedQuiz.index>=0&&savedQuiz.index<=questions.length?savedQuiz.index:0;
+let score=Number.isInteger(savedQuiz.score)&&savedQuiz.score>=0&&savedQuiz.score<=qi?savedQuiz.score:0,answered=false;
+function saveQuiz(){persist(quizKey,{index:qi,score});}
 function renderQuiz(){
  if(qi===questions.length){
-  persist('outpost-quiz-best',Math.max(Number(read('outpost-quiz-best',0))||0,score));
-  $('#quiz-card').innerHTML='<div class="quiz-top"><span>EXPEDITION COMPLETE</span><span>✦</span></div><h3>You found '+score+' out of '+questions.length+' answers!</h3><p class="quiz-feedback">Every question is a chance to learn. Try the outpost stations and mission atlas, then give it another go.</p><p class="quiz-feedback">Best in this browser: '+read('outpost-quiz-best',score)+' / 5</p><button class="button primary" id="quiz-restart">Explore again ↻</button>';
-  $('#quiz-restart').addEventListener('click',()=>{qi=0;score=0;renderQuiz();});return;
+  $('#quiz-card').innerHTML='<div class="quiz-top"><span>MISSION QUIZ COMPLETE</span><span>✦</span></div><h3>You explored all '+questions.length+' questions!</h3><p class="quiz-feedback">You answered '+score+' correctly. Every question is a chance to learn; revisit the trainer and atlas to explore again.</p><button class="button primary" id="quiz-restart">Start again ↻</button>';
+  $('#quiz-restart').addEventListener('click',()=>{qi=0;score=0;saveQuiz();renderQuiz();});return;
  }
  answered=false;const q=questions[qi];
- $('#quiz-card').innerHTML='<div class="quiz-top"><span>QUESTION '+(qi+1)+' OF '+questions.length+'</span><span>'+score+' discoveries ✧</span></div><h3>'+q.q+'</h3><div class="answers">'+q.a.map((a,i)=>'<button class="answer" data-answer="'+i+'">'+a+'</button>').join('')+'</div><p class="quiz-feedback" aria-live="polite"></p><button class="button primary quiz-next" hidden>Next question →</button>';
+ $('#quiz-card').innerHTML='<div class="quiz-top"><span>QUESTION '+(qi+1)+' OF '+questions.length+'</span><span>LEVEL '+q.level+' / 20</span></div><p class="quiz-level">'+(q.level<=4?'FOUNDATIONS':q.level<=10?'MISSION PRACTICE':q.level<=16?'CREW CHALLENGE':'MISSION EXPERT')+' · Question '+((qi%5)+1)+' of 5 in this level</p><h3>'+escape(q.q)+'</h3><div class="answers">'+q.a.map((a,i)=>'<button class="answer" data-answer="'+i+'">'+escape(a)+'</button>').join('')+'</div><p class="quiz-feedback" aria-live="polite"></p><button class="button primary quiz-next" hidden>Next question →</button><button class="quiz-reset" type="button">Start quiz again</button>';
  $$('.answer').forEach(b=>b.addEventListener('click',()=>{if(answered)return;answered=true;const chosen=Number(b.dataset.answer);if(chosen===q.right)score++;$$('.answer').forEach(x=>{x.disabled=true;if(Number(x.dataset.answer)===q.right)x.classList.add('correct');});if(chosen!==q.right)b.classList.add('wrong');$('.quiz-feedback').textContent=(chosen===q.right?'You got it! ':'A new thing to learn! ')+q.why;$('.quiz-next').hidden=false;}));
- $('.quiz-next').addEventListener('click',()=>{qi++;renderQuiz();});
+ $('.quiz-next').addEventListener('click',()=>{qi++;saveQuiz();renderQuiz();});
+ $('.quiz-reset').addEventListener('click',()=>{qi=0;score=0;saveQuiz();renderQuiz();});
 }
 renderStation();renderMissions();renderSaved();renderQuiz();
 
