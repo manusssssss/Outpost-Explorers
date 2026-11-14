@@ -24,3 +24,5 @@ dialog.mission-dialog-expanded{width:min(960px,calc(100% - 28px));max-width:960p
 .mission-meta{row-gap:.45rem}
 
 .quiz-level{font-size:10px;letter-spacing:.08em;color:#526b50;margin:14px 0 0}.quiz-reset{display:block;clear:both;background:none;border:0;padding:18px 0 3px;color:#526b50;text-decoration:underline;font-size:11px}.quiz-reset:focus-visible{outline:3px solid var(--orange)}
+
+.review-section{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,6vw,90px);background:#e9eee6}.review-section h2{margin:12px 0;font-size:clamp(32px,4vw,54px);line-height:1.08}.review-section>div>p:last-child{max-width:460px;line-height:1.7}.review-form{display:grid;gap:10px;align-content:start}.review-form label{font-weight:700;font-size:14px}.review-form select,.review-form textarea{width:100%;padding:13px;border:1px solid #aabcb4;border-radius:8px;background:#fff;color:#193a37;font:inherit}.review-form textarea{resize:vertical}.review-form button{justify-self:start}.review-form #review-status{min-height:1.5em;margin:0;line-height:1.5}@media(max-width:700px){.review-section{grid-template-columns:1fr;gap:20px}}

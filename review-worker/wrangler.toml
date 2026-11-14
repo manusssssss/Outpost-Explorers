@@ -1,0 +1,11 @@
+name = "outpost-review-mailer"
+main = "src/index.js"
+compatibility_date = "2026-11-13"
+
+[[durable_objects.bindings]]
+name = "REVIEWS"
+class_name = "ReviewInbox"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ReviewInbox"]
